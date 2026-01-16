@@ -2,182 +2,102 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Hamza Tuna | Developer</title>
+<title>Vice City | Hamza Tuna</title>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family: Arial, sans-serif;
-}
-
 body{
+    margin:0;
+    background:linear-gradient(135deg,#ff0080,#00e0ff);
+    display:flex;
+    justify-content:center;
+    align-items:center;
     height:100vh;
-    background: radial-gradient(circle at top, #111, #000);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
+    font-family:Arial, sans-serif;
 }
 
-/* LOADING */
-#loader{
-    position:fixed;
-    inset:0;
-    background:#000;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:28px;
-    color:#00ff99;
-    z-index:9999;
-    animation:pulse 1s infinite alternate;
-}
-@keyframes pulse{
-    from{opacity:0.3}
-    to{opacity:1}
+#game{
+    background:#111;
+    border:6px solid #ff5fa2;
+    box-shadow:0 0 40px #00e0ff;
 }
 
-/* ARKA PLAN */
-.bg{
+.info{
     position:absolute;
-    width:100%;
-    height:100%;
-    background: repeating-linear-gradient(
-        90deg,
-        rgba(0,255,150,0.05) 0px,
-        rgba(0,255,150,0.05) 1px,
-        transparent 1px,
-        transparent 40px
-    );
-    animation: bgMove 20s linear infinite;
-}
-@keyframes bgMove{
-    from{background-position:0 0;}
-    to{background-position:1000px 0;}
-}
-
-/* KART */
-.card{
-    position:relative;
-    background:rgba(255,255,255,0.08);
-    padding:45px 55px;
-    border-radius:25px;
+    top:20px;
+    color:white;
     text-align:center;
-    box-shadow:0 0 60px rgba(0,255,150,0.4);
-    animation:giris 1.2s ease;
-    z-index:1;
-    width:360px;
-}
-
-h1{
-    font-size:40px;
-    margin-bottom:5px;
-}
-
-.subtitle{
-    opacity:0.8;
-    margin-bottom:15px;
-}
-
-.desc{
-    color:#00ff99;
-    margin-bottom:25px;
-}
-
-/* OYUN */
-.game{
-    margin-top:20px;
-}
-
-#score{
-    font-size:22px;
-    margin-bottom:15px;
-}
-
-#clickBtn{
-    padding:15px 35px;
+    width:100%;
     font-size:18px;
-    border:none;
-    border-radius:30px;
-    cursor:pointer;
-    background:#00ff99;
-    transition:0.2s;
-}
-
-#clickBtn:hover{
-    transform:scale(1.1);
-    background:#00cc77;
-}
-
-footer{
-    margin-top:25px;
-    font-size:13px;
-    opacity:0.6;
-}
-
-@keyframes giris{
-    from{opacity:0; transform:scale(0.7);}
-    to{opacity:1; transform:scale(1);}
-}
-
-/* MOUSE NEON */
-#cursor{
-    position:fixed;
-    width:25px;
-    height:25px;
-    border-radius:50%;
-    background:rgba(0,255,153,0.6);
-    pointer-events:none;
-    box-shadow:0 0 20px #00ff99, 0 0 40px #00ff99;
-    transform:translate(-50%,-50%);
-    z-index:999;
 }
 </style>
 </head>
 
 <body>
 
-<div id="loader">Yükleniyor...</div>
-<div class="bg"></div>
-<div id="cursor"></div>
-
-<div class="card">
-    <h1>Hamza Tuna 🚀</h1>
-    <p class="subtitle">Frontend Developer</p>
-    <p class="desc">Aşağıda mini oyunu dene 👇</p>
-
-    <div class="game">
-        <div id="score">Skor: 0</div>
-        <button id="clickBtn">TIKLA 🔥</button>
-    </div>
-
-    <footer>© 2026 • GitHub Pages</footer>
+<div class="info">
+    🌴 GTA Vice City Mini <br>
+    WASD ile sür
 </div>
 
+<canvas id="game" width="600" height="400"></canvas>
+
 <script>
-/* LOADING */
-window.onload = () => {
-    setTimeout(()=>{
-        document.getElementById("loader").style.display="none";
-    },1200);
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let car = {
+    x:300,
+    y:200,
+    w:30,
+    h:15,
+    speed:3
+};
+
+let keys = {};
+
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+function update(){
+    if(keys["w"]) car.y -= car.speed;
+    if(keys["s"]) car.y += car.speed;
+    if(keys["a"]) car.x -= car.speed;
+    if(keys["d"]) car.x += car.speed;
+
+    // sınırlar
+    car.x = Math.max(0, Math.min(canvas.width-car.w, car.x));
+    car.y = Math.max(0, Math.min(canvas.height-car.h, car.y));
 }
 
-/* MOUSE */
-document.addEventListener("mousemove", e=>{
-    const c = document.getElementById("cursor");
-    c.style.left = e.clientX + "px";
-    c.style.top  = e.clientY + "px";
-});
+function draw(){
+    ctx.fillStyle="#111";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-/* MINI OYUN */
-let score = 0;
-document.getElementById("clickBtn").addEventListener("click", ()=>{
-    score++;
-    document.getElementById("score").innerText = "Skor: " + score;
-});
+    // yollar
+    ctx.strokeStyle="#333";
+    for(let i=0;i<canvas.width;i+=40){
+        ctx.beginPath();
+        ctx.moveTo(i,0);
+        ctx.lineTo(i,400);
+        ctx.stroke();
+    }
+
+    // araba
+    ctx.fillStyle="#ff5fa2";
+    ctx.fillRect(car.x,car.y,car.w,car.h);
+
+    // neon far
+    ctx.fillStyle="rgba(0,224,255,0.6)";
+    ctx.fillRect(car.x+car.w, car.y+4, 10, 6);
+}
+
+function gameLoop(){
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
 </script>
 
 </body>
