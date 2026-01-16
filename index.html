@@ -78,31 +78,15 @@ h1{
     margin-bottom:10px;
 }
 
-p{
+.subtitle{
     opacity:0.8;
-    margin-bottom:30px;
+    margin-bottom:20px;
 }
 
-button{
-    padding:15px 40px;
-    font-size:18px;
-    border:none;
-    border-radius:30px;
-    cursor:pointer;
-    background:#00ff99;
-    transition:0.3s;
-}
-
-button:hover{
-    background:#00cc77;
-    transform:scale(1.15);
-}
-
-#surpriz{
-    margin-top:25px;
-    font-size:22px;
+.desc{
+    font-size:20px;
     color:#00ff99;
-    display:none;
+    margin-bottom:30px;
 }
 
 footer{
@@ -145,23 +129,16 @@ footer{
 
 <div class="card">
     <h1>Hamza Tuna 🚀</h1>
-    <p>Frontend Developer • GitHub Pages</p>
+    <p class="subtitle">Frontend Developer • GitHub Pages</p>
 
-    <button onclick="sov()">Bas ve gör</button>
-
-    <div id="surpriz">
-    NASIL OLMUŞ???    <br>
-        
-    </div>
+    <p class="desc">
+        Kişisel web siteme hoş geldiniz.
+    </p>
 
     <footer>© 2026 • Yayında</footer>
 </div>
 
 <script>
-function sov(){
-    document.getElementById("surpriz").style.display="block";
-}
-
 window.onload = () => {
     setTimeout(()=>{
         document.getElementById("loader").style.display="none";
@@ -177,4 +154,3 @@ document.addEventListener("mousemove", e=>{
 
 </body>
 </html>
-
