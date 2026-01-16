@@ -1,50 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Benim Sitem</title>
+<meta charset="UTF-8">
+<title>Hamza Tuna</title>
 
-    <style>
-        body {
-            background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding-top: 100px;
-        }
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        h1 {
-            font-size: 48px;
-        }
+body {
+    height: 100vh;
+    background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            background-color: #00ff99;
-        }
+.card {
+    background: rgba(255,255,255,0.06);
+    padding: 40px 50px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0,255,150,0.3);
+    animation: giris 1.2s ease;
+}
 
-        button:hover {
-            background-color: #00cc77;
-        }
-    </style>
+h1 {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+p {
+    opacity: 0.8;
+    margin-bottom: 25px;
+}
+
+button {
+    padding: 14px 35px;
+    font-size: 18px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    background: #00ff99;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #00cc77;
+    transform: scale(1.1);
+}
+
+#surpriz {
+    margin-top: 25px;
+    font-size: 22px;
+    color: #00ff99;
+    display: none;
+}
+
+@keyframes giris {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+</style>
 </head>
 
 <body>
 
-<h1>HELLO KNK 👋</h1>
-<p>Bu siteyi ben yaptım 😎</p>
+<div class="card">
+    <h1>Hamza Tuna</h1>
+    <p>Web Developer (yeni ama tehlikeli 😎)</p>
 
-<button onclick="tikla()">Bas bakim</button>
+    <button onclick="sov()">Bas bakalım</button>
+
+    <div id="surpriz">
+        OHA AQ 😳<br>
+        Bunu ben yaptım.
+    </div>
+</div>
 
 <script>
-function tikla() {
-    alert("Buton çalışıyor lan 🔥");
+function sov() {
+    document.getElementById("surpriz").style.display = "block";
 }
 </script>
 
 </body>
 </html>
-
