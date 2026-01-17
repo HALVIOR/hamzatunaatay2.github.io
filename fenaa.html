@@ -2,175 +2,241 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Tuna Galeri | Underground</title>
+    <title>Tuna Galeri: Mafia Empire</title>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        #game-ui { position: fixed; width: 320px; height: 100vh; background: rgba(10,10,10,0.95); border-right: 2px solid #333; z-index: 100; padding: 20px; box-sizing: border-box; }
-        #viewport { margin-left: 320px; width: calc(100vw - 320px); height: 100vh; position: relative; }
+        :root { --neon: #00f2ff; --pink: #ff007f; --gold: #ffd700; --red: #ff4757; }
+        body { margin: 0; background: #050505; color: #eee; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        .stat-card { background: #1a1a1a; padding: 10px; border-radius: 8px; border-left: 4px solid #00f2ff; margin-bottom: 10px; }
-        .btn { background: #333; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; transition: 0.3s; }
-        .btn:hover { background: #00f2ff; color: #000; }
+        /* Dashboard */
+        .hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; background: rgba(0,0,0,0.9); border-bottom: 2px solid #222; z-index: 1000; }
+        .stat { text-align: center; }
+        .stat b { display: block; font-size: 12px; color: #888; }
+        .stat span { font-size: 18px; color: var(--neon); font-weight: bold; }
+
+        .main-grid { display: grid; grid-template-columns: 350px 1fr 300px; height: 100vh; padding-top: 70px; }
         
-        #phone { position: absolute; bottom: 20px; right: 20px; width: 200px; height: 350px; background: #111; border: 4px solid #444; border-radius: 20px; padding: 15px; display: none; z-index: 1000; box-shadow: 0 0 30px rgba(0,0,0,1); }
-        #speedo { position: absolute; bottom: 30px; left: 30px; font-size: 45px; color: #00f2ff; font-family: monospace; text-shadow: 0 0 10px #00f2ff; }
+        /* Sol: Operasyon Paneli */
+        .panel { background: #0a0a0a; border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .card { background: #151515; border: 1px solid #333; padding: 15px; border-radius: 8px; position: relative; }
+        .btn { background: #222; border: 1px solid var(--neon); color: #fff; padding: 10px; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; margin-top: 5px; }
+        .btn:hover { background: var(--neon); color: #000; }
+        .btn-risk { border-color: var(--red); color: var(--red); }
+
+        /* Orta: Dünya & Sürüş */
+        .world { position: relative; background: #000; border-right: 1px solid #333; }
+        #speedo { position: absolute; bottom: 20px; left: 20px; font-size: 40px; color: var(--neon); font-family: monospace; }
+        #event-log { position: absolute; top: 20px; right: 20px; width: 250px; pointer-events: none; }
+        .log-entry { background: rgba(255,0,0,0.2); border-left: 4px solid var(--red); padding: 8px; margin-bottom: 5px; font-size: 12px; animation: slideIn 0.3s; }
+
+        /* Sağ: Müşteri & Pazarlık */
+        .trade-zone { background: #0a0a0a; padding: 20px; }
+        .customer-ui { text-align: center; border: 2px solid var(--gold); padding: 15px; border-radius: 15px; display: none; }
         
-        .npc-dialog { background: #222; padding: 10px; border-radius: 5px; font-size: 13px; border: 1px solid #444; margin-top: 20px; display: none; }
-        @keyframes ring { 0% { transform: scale(1); } 50% { transform: scale(1.05); border-color: #ff007f; } 100% { transform: scale(1); } }
-        .ringing { animation: ring 0.5s infinite; border-color: #ff007f !important; display: block !important; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     </style>
 </head>
 <body>
 
-<div id="game-ui">
-    <h2 style="color:#00f2ff; text-align:center;">TUNA GALERİ</h2>
-    
-    <div class="stat-card">💰 PARA: <span id="m-val">500.000</span>₺</div>
-    <div class="stat-card">🍔 AÇLIK: %<span id="h-val">100</span></div>
-    <div class="stat-card">🕌 İMAN: %<span id="f-val">100</span></div>
-    <hr color="#333">
-    
-    <button class="btn" onclick="interact('galeri')">🏢 GALERİYE GİT</button>
-    <button class="btn" onclick="interact('sanayi')">🔧 SANAYİYE GİT</button>
-    <button class="btn" onclick="interact('cami')">🕌 CAMİYE GİT</button>
-    <button class="btn" onclick="interact('tefeci')" style="border: 1px solid red;">🕶️ TEFECİ HAYRİ</button>
-
-    <div id="npc-box" class="npc-dialog">
-        <b id="npc-name" style="color:#00f2ff"></b>
-        <p id="npc-text"></p>
-        <div id="npc-btns"></div>
-    </div>
+<div class="hud">
+    <div class="stat"><b>KASA</b> <span id="h-money">500,000</span>₺</div>
+    <div class="stat"><b>İTİBAR</b> <span id="h-rep" style="color:var(--gold)">50</span></div>
+    <div class="stat"><b>KORKU</b> <span id="h-fear" style="color:var(--pink)">0</span></div>
+    <div class="stat"><b>AÇLIK</b> <span id="h-hunger">100</span>%</div>
 </div>
 
-<div id="viewport">
-    <div id="speedo">0 KM/H</div>
-    <div id="phone">
-        <div style="text-align:center; font-size:12px; color:#666;">IPHONE 16 PRO</div>
-        <div id="phone-content" style="margin-top:50px; text-align:center;">
-            <p id="caller">Arama Yok</p>
-            <button class="btn" onclick="answer()">CEVAPLA (T)</button>
+<div class="main-grid">
+    <div class="panel">
+        <h3 style="color:var(--neon)">İMPERATORLUK</h3>
+        <div class="card">
+            <b>📍 Merkez Galeri</b>
+            <p style="font-size:12px; color:#666;">Kapasite: 3 Araç</p>
+            <button class="btn" onclick="buyBranch()">YENİ ŞUBE AÇ (₺2.0M)</button>
+        </div>
+        
+        <div id="garage">
+            <h4 style="margin-bottom:5px;">GARAJ</h4>
+            <div id="car-list"></div>
+        </div>
+
+        <button class="btn btn-risk" onclick="triggerPolice()">🚨 RÜŞVET DAĞIT (₺50k)</button>
+    </div>
+
+    <div class="world">
+        <canvas id="drive-canvas"></canvas>
+        <div id="speedo">0 KM/H</div>
+        <div id="event-log"></div>
+    </div>
+
+    <div class="trade-zone">
+        <h3 style="color:var(--gold)">MÜŞTERİ BEKLİYOR</h3>
+        <div id="no-customer" style="color:#444; text-align:center; margin-top:50px;">Kapıda kimse yok...</div>
+        
+        <div class="customer-ui" id="customer-ui">
+            <div id="c-icon" style="font-size:50px;">👤</div>
+            <h4 id="c-name">Öğrenci Ali</h4>
+            <p id="c-desc" style="font-size:13px; color:#aaa;">"Abi okul için uygun bir şey lazım."</p>
+            <div id="negotiation">
+                <p id="c-offer" style="font-weight:bold; color:var(--neon)"></p>
+                <button class="btn" onclick="deal('sell')">SAT</button>
+                <button class="btn btn-risk" onclick="deal('lie')">YALAN SÖYLE (Pert Değil)</button>
+                <button class="btn" style="border-color:#555" onclick="deal('reject')">KOV</button>
+            </div>
         </div>
     </div>
-    <canvas id="stage"></canvas>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-    let state = { money: 500000, hunger: 100, faith: 100, car: null, speed: 0 };
-    
-    // --- NPC SİSTEMİ ---
-    function interact(loc) {
-        const box = document.getElementById('npc-box');
-        const name = document.getElementById('npc-name');
-        const text = document.getElementById('npc-text');
-        const btns = document.getElementById('npc-btns');
-        box.style.display = "block"; btns.innerHTML = "";
+    let game = {
+        money: 500000, rep: 50, fear: 10, hunger: 100,
+        cars: [], currentCustomer: null
+    };
 
-        if(loc === 'galeri') {
-            name.innerText = "Galerici Metin";
-            text.innerText = "Elimde bi' tane efsane Supra var. 4M istiyorlar. Alır mısın?";
-            btns.innerHTML = `<button class="btn" onclick="buyCar('Supra', 4000000, 0xffaa00)">4M ₺ SATIN AL</button>`;
-        } else if(loc === 'sanayi') {
-            name.innerText = "Sabri Usta";
-            text.innerText = "Arabanın rengini mi beğenmedin? 50k'ya boyarız.";
-            btns.innerHTML = `<button class="btn" onclick="modCar()">50k ₺ BOYA</button>`;
-        } else if(loc === 'tefeci') {
-            name.innerText = "Tefeci Hayri";
-            text.innerText = "Yeğen, sıkışıksan 200k vereyim ama haftaya 400k alırım.";
-            btns.innerHTML = `<button class="btn" onclick="getDebt()">200k BORÇ AL</button>`;
-        } else if(loc === 'cami') {
-            state.faith = 100; state.hunger = Math.max(0, state.hunger-10); updateUI();
-            alert("Namaz kılındı, huzur doldu.");
+    // --- MEKANİKLER ---
+    function spawnCar() {
+        const models = [
+            {n: "Egea", p: 800000, condition: "Temiz", km: 45000},
+            {n: "M4", p: 6000000, condition: "Pert Kayıtlı", km: 120000},
+            {n: "Şahin", p: 200000, condition: "Hasarlı", km: 280000}
+        ];
+        const c = models[Math.floor(Math.random()*models.length)];
+        // Risk Faktörü: Kilometre çekilmiş olabilir mi?
+        c.realCondition = Math.random() > 0.7 ? "Ağır Hasarlı" : c.condition;
+        game.cars.push(c);
+        updateUI();
+    }
+
+    function spawnCustomer() {
+        const types = [
+            {n: "Öğrenci Berk", d: "Çok titiz, ekspertiz ister.", risk: 0.1, type: "student"},
+            {n: "Mafya Ejder", d: "Pazarlık sevmez, yamuk istemez.", risk: 0.8, type: "mafia"},
+            {n: "Zengin İş Adamı", d: "Hızlı alır, paraya bakmaz.", risk: 0.2, type: "rich"}
+        ];
+        game.currentCustomer = types[Math.floor(Math.random()*types.length)];
+        document.getElementById('no-customer').style.display = 'none';
+        const ui = document.getElementById('customer-ui');
+        ui.style.display = 'block';
+        document.getElementById('c-name').innerText = game.currentCustomer.n;
+        document.getElementById('c-desc').innerText = game.currentCustomer.d;
+        
+        if(game.cars.length > 0) {
+            let car = game.cars[0];
+            document.getElementById('c-offer').innerText = car.n + " için ₺" + (car.p * 1.1).toLocaleString();
         }
     }
 
-    function buyCar(n, p, c) {
-        if(state.money >= p) { state.money -= p; state.car = {n, c}; updateUI(); createCar(); alert(n + " garajda!"); }
-        else alert("Para yetmiyor kral.");
+    function deal(action) {
+        if(game.cars.length === 0) return;
+        let car = game.cars[0];
+        let cust = game.currentCustomer;
+
+        if(action === 'sell') {
+            game.money += car.p * 1.05;
+            game.rep += 5;
+            log("Satış başarılı. İtibar kazandın.");
+        } else if(action === 'lie') {
+            // Yalan Söyleme Mekaniği
+            if(Math.random() < 0.5) {
+                game.money += car.p * 1.3;
+                game.rep -= 10;
+                log("Yalanın tuttu! Büyük para kazandın.", "gold");
+            } else {
+                game.rep -= 30;
+                game.fear += 20;
+                log("YAKALANDIN! Müşteri dükkanı birbirine kattı.", "red");
+                if(cust.type === 'mafia') {
+                    game.money -= 200000;
+                    log("Mafya ceza kesti: ₺200k uçtu.", "red");
+                }
+            }
+        }
+        
+        game.cars.shift();
+        document.getElementById('customer-ui').style.display = 'none';
+        document.getElementById('no-customer').style.display = 'block';
+        updateUI();
     }
 
-    function modCar() {
-        if(state.car && state.money >= 50000) { state.money -= 50000; state.car.c = Math.random() * 0xffffff; createCar(); updateUI(); }
+    function log(msg, color="white") {
+        const l = document.getElementById('event-log');
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.style.borderColor = color === "red" ? "var(--red)" : "var(--neon)";
+        div.innerText = msg;
+        l.prepend(div);
+        setTimeout(() => div.remove(), 5000);
     }
-
-    function getDebt() { state.money += 200000; updateUI(); alert("Borç alındı, Hayri ensende!"); }
 
     function updateUI() {
-        document.getElementById('m-val').innerText = state.money.toLocaleString();
-        document.getElementById('h-val').innerText = Math.floor(state.hunger);
-        document.getElementById('f-val').innerText = state.faith;
+        document.getElementById('h-money').innerText = game.money.toLocaleString();
+        document.getElementById('h-rep').innerText = game.rep;
+        document.getElementById('h-fear').innerText = game.fear;
+        document.getElementById('h-hunger').innerText = Math.floor(game.hunger);
+        
+        const list = document.getElementById('car-list');
+        list.innerHTML = game.cars.map(c => `<div class="card" style="font-size:12px"><b>${c.n}</b><br>${c.condition} | ${c.km}km</div>`).join('');
     }
 
-    // --- 3D SÜRÜŞ (TEK PARÇA AKICI) ---
+    // --- 3D SÜRÜŞ MOTORU (DİNAMİK) ---
+    const canvas = document.getElementById('drive-canvas');
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, (window.innerWidth-320)/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('stage'), antialias: true });
-    renderer.setSize(window.innerWidth - 320, window.innerHeight);
+    const camera = new THREE.PerspectiveCamera(75, (window.innerWidth-650)/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth - 650, window.innerHeight);
 
-    // Yol ve Şehir Çizgileri
-    const grid = new THREE.GridHelper(2000, 100, 0x444444, 0x222222);
-    scene.add(grid);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const road = new THREE.GridHelper(1000, 40, 0x222222, 0x111111);
+    scene.add(road);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
     const player = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4), new THREE.MeshStandardMaterial({color: 0x00f2ff}));
+    body.position.y = 0.5;
+    player.add(body);
     scene.add(player);
 
-    function createCar() {
-        player.clear();
-        let color = state.car ? state.car.c : 0x555555;
-        let body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4), new THREE.MeshStandardMaterial({color}));
-        body.position.y = 0.5;
-        player.add(body);
-        let headL = new THREE.PointLight(0xffffff, 2, 10); headL.position.set(0,1,-2); player.add(headL);
-    }
-    createCar();
-
     let keys = {};
-    window.onkeydown = (e) => { keys[e.key.toLowerCase()] = true; if(e.key === 't') answer(); };
+    window.onkeydown = (e) => keys[e.key.toLowerCase()] = true;
     window.onkeyup = (e) => keys[e.key.toLowerCase()] = false;
 
-    let rot = 0;
-    function drive() {
-        requestAnimationFrame(drive);
+    let speed = 0, rot = 0;
+
+    function animate() {
+        requestAnimationFrame(animate);
         
-        let targetS = keys['w'] ? 1.2 : (keys['s'] ? -0.4 : 0);
-        state.speed = THREE.MathUtils.lerp(state.speed, targetS, 0.05);
-        
-        if(keys['a']) rot += 0.03;
-        if(keys['d']) rot -= 0.03;
+        if(keys['w']) speed = Math.min(speed + 0.01, 1.2);
+        else if(keys['s']) speed = Math.max(speed - 0.02, -0.4);
+        else speed *= 0.98;
+
+        if(keys['a']) rot += 0.03 * (speed > 0 ? 1 : -1);
+        if(keys['d']) rot -= 0.03 * (speed > 0 ? 1 : -1);
 
         player.rotation.y = rot;
-        player.translateZ(-state.speed);
+        player.translateZ(-speed);
 
-        // Kamera Takibi
-        let offset = new THREE.Vector3(0, 7, 13).applyMatrix4(player.matrixWorld);
+        // Kamera
+        let offset = new THREE.Vector3(0, 8, 14).applyMatrix4(player.matrixWorld);
         camera.position.lerp(offset, 0.1);
         camera.lookAt(player.position);
 
-        // Açlık
-        state.hunger = Math.max(0, state.hunger - 0.005);
-        
-        document.getElementById('speedo').innerText = Math.abs(Math.floor(state.speed * 180)) + " KM/H";
-        updateUI();
+        // Rastgele Polis Çevirmesi
+        if(speed > 0.8 && Math.random() < 0.001) {
+            speed = 0;
+            log("🚨 POLİS: Hız sınırını aştın! Ceza: ₺5,000", "red");
+            game.money -= 5000;
+        }
+
+        document.getElementById('speedo').innerText = Math.abs(Math.floor(speed * 180)) + " KM/H";
         renderer.render(scene, camera);
     }
 
-    // --- TELEFON ---
-    function ring() {
-        const ph = document.getElementById('phone');
-        document.getElementById('caller').innerText = "Tefeci Hayri Arıyor...";
-        ph.style.display = "block";
-        ph.classList.add('ringing');
-    }
-    function answer() {
-        const ph = document.getElementById('phone');
-        ph.classList.remove('ringing');
-        ph.style.display = "none";
-        alert("Hayri: Borcun faizi bindi yeğen, akşam uğrayacağım!");
-    }
-
-    setInterval(() => { if(Math.random() > 0.7) ring(); }, 20000);
-    drive();
+    // Döngüler
+    setInterval(spawnCar, 30000);
+    setInterval(spawnCustomer, 15000);
+    setInterval(() => { game.hunger -= 1; updateUI(); }, 10000);
+    
+    updateUI();
+    animate();
+    spawnCar();
 </script>
 </body>
 </html>
