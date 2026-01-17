@@ -3,27 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tuna Galeri: Night Drive Edition</title>
+<title>Tuna Galeri: Full 3D Edition</title>
 <style>
     :root { --bg: #050505; --card: #111; --gold: #ffd700; --red: #ff4d4d; --green: #2ecc71; --blue: #3498db; }
     body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    .top-bar { background: #000; padding: 10px; display: flex; justify-content: space-around; border-bottom: 2px solid #222; z-index: 100; font-size: 14px; }
+    .top-bar { background: #000; padding: 12px; display: flex; justify-content: space-around; border-bottom: 2px solid #222; z-index: 100; }
     .bar-wrap { width: 60px; height: 8px; background: #222; border-radius: 4px; display: inline-block; }
     .bar-fill { height: 100%; transition: 0.4s; border-radius: 4px; }
-    .game-container { flex: 1; display: grid; grid-template-columns: 200px 1fr 260px; gap: 10px; padding: 10px; position: relative; }
+    .game-container { flex: 1; display: grid; grid-template-columns: 200px 1fr 280px; gap: 10px; padding: 10px; position: relative; }
     .nav-menu { display: flex; flex-direction: column; gap: 8px; z-index: 10; }
-    .nav-btn { background: var(--card); border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; text-align: left; }
+    .nav-btn { background: var(--card); border: 1px solid #333; color: #fff; padding: 15px; border-radius: 10px; cursor: pointer; text-align: left; }
     .nav-btn.active { background: var(--blue); border-color: #fff; }
-    .stage { background: #000; border-radius: 15px; border: 1px solid #333; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    #drive-ui { position: absolute; top: 15px; width: 100%; text-align: center; display: none; pointer-events: none; z-index: 50; text-shadow: 2px 2px 4px #000; }
-    .sidebar { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #333; z-index: 10; display: flex; flex-direction: column; gap: 10px; }
-    .car-card { background: #000; height: 120px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 4em; border: 2px dashed #333; }
-    .btn { border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
-    .btn-green { background: var(--green); }
+    .stage { background: #000; border-radius: 20px; border: 1px solid #333; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    #drive-ui { position: absolute; top: 20px; width: 100%; text-align: center; display: none; pointer-events: none; z-index: 50; }
+    .sidebar { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #333; z-index: 10; display: flex; flex-direction: column; gap: 10px; }
+    .car-card { background: #000; height: 140px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 5em; border: 2px dashed #444; }
+    .btn { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+    .btn-green { background: var(--green); color: #000; }
     .btn-blue { background: var(--blue); color: #fff; }
-    .btn-gold { background: var(--gold); }
+    .btn-gold { background: var(--gold); color: #000; }
     #three-canvas { width: 100%; height: 100%; display: none; }
-    .npc-view { text-align: center; }
 </style>
 </head>
 <body>
@@ -37,23 +36,25 @@
 
     <div class="game-container">
         <div class="nav-menu">
-            <button class="nav-btn active" id="m-galeri" onclick="loc('galeri')">🏢 Galeri</button>
-            <button class="nav-btn" id="m-mahalle" onclick="loc('mahalle')">🏘️ Mahalle</button>
-            <button class="nav-btn" id="m-sanayi" onclick="loc('sanayi')">🔧 Sanayi</button>
-            <button class="btn btn-red" style="margin-top:auto; background:var(--red); color:#fff" onclick="nextDay()">🌙 Günü Bitir</button>
+            <button class="nav-btn active" onclick="loc('galeri')">🏢 GALERİ</button>
+            <button class="nav-btn" onclick="loc('mahalle')">🏘️ MAHALLE</button>
+            <button class="nav-btn" onclick="loc('sanayi')">🔧 SANAYİ</button>
+            <button class="btn btn-red" style="margin-top:auto; background:var(--red); color:#fff" onclick="nextDay()">🌙 GÜNÜ BİTİR</button>
         </div>
 
-        <div class="stage">
+        <div class="stage" id="stage-area">
             <div id="drive-ui">
-                <h2 style="color:var(--gold); margin:0;">3D SÜRÜŞ TESTİ</h2>
-                <p>Puan: <span id="drive-score">0</span></p>
+                <h1 style="color:var(--gold); margin:0;">3D SÜRÜŞ TESTİ</h1>
+                <p style="font-size:1.5em">Puan: <span id="drive-score">0</span></p>
             </div>
-            <div id="npc-view" class="npc-view">
-                <div id="npc-avatar" style="font-size: 5em;">🤵</div>
+            
+            <div id="npc-view" style="text-align:center">
+                <div id="npc-avatar" style="font-size: 6em;">🤵</div>
                 <h3 id="npc-name">Mahmut</h3>
-                <p id="npc-text">"Kontağı çevir, yollar seni bekler!"</p>
-                <div id="action-btns" style="width: 200px; margin: 0 auto;"></div>
+                <p id="npc-text">"Piyasayı sallamaya hazır mısın?"</p>
+                <div id="action-btns" style="width: 250px; margin: 0 auto;"></div>
             </div>
+
             <canvas id="three-canvas"></canvas>
         </div>
 
@@ -70,107 +71,111 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
     const cars = [
-        {n:"Tofaş Şahin", p:250000, i:"🚗", c:0xffffff}, {n:"BMW M4", p:6000000, i:"🏎️", c:0x0000ff},
+        {n:"Tofaş Şahin", p:250000, i:"🚗", c:0xffffff}, 
+        {n:"BMW M4", p:6000000, i:"🏎️", c:0x0000ff},
         {n:"Mercedes G63", p:16000000, i:"🚜", c:0x222222}
     ];
 
     let state = { money: 300000, hunger: 20, faith: 50, day: 0, car: null, loc: 'galeri', score: 0 };
     let driveActive = false;
 
-    // --- 3D SAHNE KURULUMU ---
+    // --- 3D SETUP ---
     const canvas = document.getElementById('three-canvas');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x000000, 10, 50);
-    const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    scene.fog = new THREE.Fog(0x000000, 1, 60);
+    const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 
-    // Yol
+    // Yol (Daha aydınlık materyal)
     const roadGroup = new THREE.Group();
-    const roadGeo = new THREE.PlaneGeometry(12, 100);
-    const roadMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+    const roadGeo = new THREE.PlaneGeometry(15, 200);
+    const roadMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a }); // Zifiri siyah değil
     const road = new THREE.Mesh(roadGeo, roadMat);
     road.rotation.x = -Math.PI/2;
     roadGroup.add(road);
     scene.add(roadGroup);
 
-    // Yol Çizgileri
+    // Yol Çizgileri (Sürekli akan yapı)
     const lines = [];
-    const lineGeo = new THREE.PlaneGeometry(0.2, 3);
+    const lineGeo = new THREE.PlaneGeometry(0.3, 4);
     const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    for(let i=0; i<15; i++) {
-        let line = new THREE.Mesh(lineGeo, lineMat);
-        line.rotation.x = -Math.PI/2;
-        line.position.set(0, 0.02, -i*8);
-        roadGroup.add(line);
-        lines.push(line);
+    for(let i=0; i<20; i++) {
+        let l = new THREE.Mesh(lineGeo, lineMat);
+        l.rotation.x = -Math.PI/2;
+        l.position.set(0, 0.05, -i*10);
+        roadGroup.add(l);
+        lines.push(l);
     }
 
-    // Sokak Lambaları
+    // Sokak Lambaları (Işık şiddeti artırıldı)
     const lamps = [];
     function createLamp(z) {
-        const lampGroup = new THREE.Group();
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 5), new THREE.MeshStandardMaterial({color:0x333333}));
-        pole.position.set(-6, 2.5, z);
-        const head = new THREE.Mesh(new THREE.BoxGeometry(1, 0.2, 0.5), new THREE.MeshStandardMaterial({color:0x111111}));
-        head.position.set(-5.5, 5, z);
-        const light = new THREE.PointLight(0xffaa00, 2, 10);
-        light.position.set(-5.5, 4.8, z);
-        lampGroup.add(pole, head, light);
-        scene.add(lampGroup);
-        lamps.push(lampGroup);
+        const group = new THREE.Group();
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 7), new THREE.MeshStandardMaterial({color:0x444444}));
+        pole.position.set(-7, 3.5, z);
+        const light = new THREE.PointLight(0xffcc00, 25, 20); // Çok daha güçlü ışık
+        light.position.set(-6, 6.5, z);
+        const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.3, 0.5), new THREE.MeshStandardMaterial({color:0x111111}));
+        head.position.set(-6.2, 6.8, z);
+        group.add(pole, light, head);
+        scene.add(group);
+        lamps.push(group);
     }
-    for(let i=0; i<5; i++) createLamp(-i*20);
+    for(let i=0; i<8; i++) createLamp(-i*25);
 
     const playerCar = new THREE.Group();
-    const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 2.5), new THREE.MeshStandardMaterial({color: 0xff0000}));
+    const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 3), new THREE.MeshStandardMaterial({color: 0xff0000}));
     carBody.position.y = 0.5;
     playerCar.add(carBody);
     scene.add(playerCar);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-    camera.position.set(0, 4, 8);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+    camera.position.set(0, 5, 10);
     camera.lookAt(0, 0, -5);
 
     let enemies = [];
     function addEnemy() {
-        const e = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 2.5), new THREE.MeshStandardMaterial({color: 0x555555}));
-        e.position.set((Math.random()-0.5)*9, 0.5, -60);
+        const e = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 3), new THREE.MeshStandardMaterial({color: 0x444444}));
+        e.position.set((Math.random()-0.5)*12, 0.5, -80);
         scene.add(e);
         enemies.push(e);
     }
 
-    // --- SÜRÜŞ DÖNGÜSÜ ---
+    // --- ANIMASYON ---
     function animateDrive() {
         if(!driveActive) return;
         requestAnimationFrame(animateDrive);
 
-        // Yol Çizgisi Akışı
+        const speed = 1.2;
+        // Çizgileri Kaydır
         lines.forEach(l => {
-            l.position.z += 0.8;
-            if(l.position.z > 10) l.position.z = -80;
+            l.position.z += speed;
+            if(l.position.z > 20) l.position.z = -180;
         });
 
-        // Sokak Lambası Akışı
+        // Lambaları Kaydır
         lamps.forEach(l => {
-            l.position.z += 0.8;
-            if(l.position.z > 20) l.position.z = -80;
+            l.position.z += speed;
+            if(l.position.z > 30) l.position.z = -170;
         });
 
         // Trafik
         if(Math.random() < 0.03) addEnemy();
         enemies.forEach((e, i) => {
-            e.position.z += 1.2;
-            if(Math.abs(e.position.z - playerCar.position.z) < 2 && Math.abs(e.position.x - playerCar.position.x) < 1.2) {
+            e.position.z += speed * 1.5;
+            if(Math.abs(e.position.z - playerCar.position.z) < 3 && Math.abs(e.position.x - playerCar.position.x) < 1.5) {
                 endDrive(true);
             }
-            if(e.position.z > 15) { scene.remove(e); enemies.splice(i, 1); state.score += 2500; }
+            if(e.position.z > 20) { scene.remove(e); enemies.splice(i, 1); state.score += 5000; }
         });
 
         document.getElementById('drive-score').innerText = state.score.toLocaleString();
         renderer.render(scene, camera);
     }
 
+    // --- BUTON VE OYUN FONKSIYONLARI ---
     function start3D() {
+        if(!state.car) return;
         driveActive = true; state.score = 0;
         document.getElementById('npc-view').style.display = "none";
         canvas.style.display = "block";
@@ -181,33 +186,31 @@
 
     function endDrive(crash) {
         driveActive = false;
-        if(crash) { state.car.p *= 0.7; alert("Kaza! Değer düştü."); }
-        else { state.car.p += state.score; alert("Sürüş bitti!"); }
+        if(crash) { state.car.p = Math.floor(state.car.p * 0.7); alert("KAZA YAPTIN! Araban hasar aldı."); }
+        else { state.car.p += state.score; alert("Test sürüşü tamamlandı!"); }
         enemies.forEach(e => scene.remove(e)); enemies = [];
         canvas.style.display = "none";
         document.getElementById('drive-ui').style.display = "none";
         document.getElementById('npc-view').style.display = "block";
-        loc('galeri');
+        updateUI();
     }
 
     window.addEventListener('keydown', (e) => {
         if(!driveActive) return;
-        if(e.key === 'a' || e.key === 'ArrowLeft') playerCar.position.x = Math.max(-5, playerCar.position.x - 0.5);
-        if(e.key === 'd' || e.key === 'ArrowRight') playerCar.position.x = Math.min(5, playerCar.position.x + 0.5);
+        if(e.key === 'a' || e.key === 'ArrowLeft') playerCar.position.x = Math.max(-6, playerCar.position.x - 0.7);
+        if(e.key === 'd' || e.key === 'ArrowRight') playerCar.position.x = Math.min(6, playerCar.position.x + 0.7);
     });
 
-    // --- GENEL OYUN FONKSİYONLARI ---
     function loc(l) {
         state.loc = l;
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('m-'+l).classList.add('active');
         const area = document.getElementById('action-btns'); area.innerHTML = "";
         if(l==='galeri') setNPC("🤵", "Mahmut", "Araba burda.");
         if(l==='mahalle') {
-            setNPC("👳", "Hacı Abi", "Selamun aleyküm.");
-            area.innerHTML = `<button class="btn btn-gold" onclick="pray()">🕌 NAMAZ</button><button class="btn btn-blue" style="margin-top:5px" onclick="eat()">🛒 YEMEK</button>`;
+            setNPC("👳", "Hacı Abi", "Selamun aleyküm evlat.");
+            area.innerHTML = `<button class="btn btn-gold" onclick="pray()">🕌 NAMAZ KIL</button><button class="btn btn-blue" style="margin-top:5px" onclick="eat()">🛒 YEMEK YE</button>`;
         }
-        if(l==='sanayi' && state.car) area.innerHTML = `<button class="btn btn-blue" onclick="modify()">🛠️ MODİFİYE</button>`;
+        if(l==='sanayi' && state.car) area.innerHTML = `<button class="btn btn-blue" onclick="modify()">🛠️ MODİFİYE ET (₺100k)</button>`;
         updateUI();
     }
 
@@ -220,8 +223,8 @@
         if(state.car) {
             document.getElementById('car-img').innerText = state.car.i;
             document.getElementById('car-title').innerText = state.car.n;
-            document.getElementById('car-info').innerText = "₺" + state.car.p.toLocaleString();
-            ctrl.innerHTML = `<button class="btn btn-gold" onclick="start3D()">🏁 TEST SÜRÜŞÜ</button><button class="btn btn-blue" style="margin-top:5px" onclick="sellMenu()">💰 MÜŞTERİ</button>`;
+            document.getElementById('car-info').innerText = "Değer: ₺" + state.car.p.toLocaleString();
+            ctrl.innerHTML = `<button class="btn btn-gold" onclick="start3D()">🏁 3D SÜRÜŞ TESTİ</button><button class="btn btn-blue" style="margin-top:5px" onclick="sellMenu()">💰 MÜŞTERİ BUL</button>`;
         } else {
             document.getElementById('car-img').innerText = "🏢"; document.getElementById('car-title').innerText = "ARAÇ YOK";
             ctrl.innerHTML = `<button class="btn btn-blue" onclick="findCar()">🚗 ARAÇ ARA</button>`;
@@ -231,11 +234,9 @@
     function findCar() {
         let c = cars[Math.floor(Math.random()*cars.length)];
         let p = Math.floor(c.p * 0.9);
-        setNPC("👤", "Satıcı", `${c.n} için ₺${p.toLocaleString()} olur.`);
-        document.getElementById('action-area'); // dummy
+        setNPC("👤", "Satıcı", `${c.n} için ₺${p.toLocaleString()} istiyorum.`);
         document.getElementById('action-btns').innerHTML = `<button class="btn btn-green" onclick="buy('${c.n}', ${p}, ${c.c}, '${c.i}')">SATIN AL</button>`;
     }
-
     function buy(n,p,c,i) { if(state.money>=p){state.money-=p; state.car={n,p,c,i}; loc('galeri');} }
     function sellMenu() {
         let p = Math.floor(state.car.p * (0.8+Math.random()*0.5));
