@@ -2,84 +2,91 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Galeri Tycoon: Full Simülasyon</title>
+<title>Galeri Tycoon: Kesin Çözüm</title>
 <style>
     :root { --bg: #0a0a0a; --gold: #ffd700; --red: #ff4d4d; --green: #2ecc71; --blue: #3498db; }
-    body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+    body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
     
-    #ui { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
-    .panel { pointer-events: auto; background: rgba(20,20,20,0.9); border: 1px solid #333; border-radius: 12px; padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
+    /* Tıklama sorununu çözen ana katman */
+    #main-ui { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        z-index: 999; pointer-events: none; 
+        display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; 
+    }
+
+    .clickable { pointer-events: all !important; }
+
+    .panel { background: rgba(20,20,20,0.95); border: 2px solid #333; border-radius: 12px; padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
 
     /* ÜST PANEL */
-    .status-bar { display: flex; gap: 20px; justify-content: space-between; align-items: center; }
-    .bar-wrap { width: 100px; height: 12px; background: #222; border-radius: 6px; overflow: hidden; border: 1px solid #444; }
+    .top-bar { display: flex; gap: 20px; justify-content: space-around; align-items: center; }
+    .bar-wrap { width: 80px; height: 10px; background: #222; border-radius: 5px; overflow: hidden; border: 1px solid #444; }
     .bar-fill { height: 100%; transition: 0.5s; width: 50%; }
 
-    /* ANA OYUN ALANI */
-    .game-layout { display: flex; justify-content: space-between; height: 75%; margin-top: 20px; }
+    /* OYUN ALANI */
+    .game-body { display: flex; justify-content: space-between; flex: 1; margin: 20px 0; gap: 20px; }
     
-    /* SOL: HARİTA/BÖLGE SEÇİMİ */
-    .map-nav { width: 220px; display: flex; flex-direction: column; gap: 10px; }
-    .nav-item { padding: 15px; border-radius: 8px; background: #1a1a1a; cursor: pointer; text-align: center; border: 1px solid #333; transition: 0.3s; }
-    .nav-item:hover { border-color: var(--blue); background: #252525; }
-    .nav-item.active { background: var(--blue); border-color: #fff; }
+    .nav-menu { width: 220px; display: flex; flex-direction: column; gap: 10px; }
+    .nav-item { padding: 15px; border-radius: 8px; background: #1a1a1a; cursor: pointer; text-align: center; border: 1px solid #444; transition: 0.2s; }
+    .nav-item:hover { border-color: var(--blue); background: #222; }
+    .nav-item.active { background: var(--blue); border-color: #fff; font-weight: bold; }
 
-    /* ORTA: ETKİLEŞİM ALANI */
-    .action-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-    .npc-box { font-size: 5em; margin-bottom: 10px; animation: float 3s infinite ease-in-out; }
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+    .center-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .npc-area { text-align: center; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 20px; border: 1px solid #222; width: 80%; }
 
-    /* SAĞ: GÜNCEL ARABA VE KONTROLLER */
-    .car-info { width: 280px; }
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
+    .right-panel { width: 280px; }
+
+    /* BUTONLAR */
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; margin-top: 8px; text-transform: uppercase; }
+    .btn:active { transform: scale(0.95); }
     .btn-green { background: var(--green); }
     .btn-blue { background: var(--blue); }
     .btn-red { background: var(--red); }
     .btn-gold { background: var(--gold); color: #000; }
 
-    input#galName { background: none; border: 1px dashed #555; color: var(--gold); text-align: center; font-size: 1.2em; width: 100%; margin-bottom: 10px; }
-    
-    #msg { position: fixed; top: 20%; left: 50%; transform: translate(-50%, -50%); background: var(--red); padding: 20px; border-radius: 10px; display: none; z-index: 1000; }
+    input#galName { background: none; border: 1px dashed #555; color: var(--gold); text-align: center; font-size: 1.2em; width: 100%; margin-bottom: 10px; pointer-events: all; }
+
+    /* 3D ARKA PLAN */
+    canvas { position: fixed; top: 0; left: 0; z-index: 1; }
 </style>
 </head>
 <body>
 
-<div id="msg"></div>
-
-<div id="ui">
-    <div class="panel status-bar">
-        <div style="color:var(--gold); font-weight:bold; font-size: 1.2em;">💰 <span id="m-val">300.000</span></div>
+<div id="main-ui">
+    <div class="panel top-bar clickable">
+        <div style="color:var(--gold); font-weight:bold;">💰 <span id="m-val">300.000</span></div>
         <div>🍕 Açlık <div class="bar-wrap"><div id="b-hunger" class="bar-fill" style="background:var(--red)"></div></div></div>
         <div>🧘 Stres <div class="bar-wrap"><div id="b-stress" class="bar-fill" style="background:var(--gold)"></div></div></div>
         <div>🕌 İman <div class="bar-wrap"><div id="b-faith" class="bar-fill" style="background:var(--green)"></div></div></div>
-        <div style="color:var(--blue)">📅 <span id="d-val">Pzt</span></div>
+        <div style="color:var(--blue); font-weight:bold;">📅 <span id="d-val">Pazartesi</span></div>
     </div>
 
-    <div class="game-layout">
-        <div class="map-nav">
-            <div class="nav-item active" id="nav-galeri" onclick="go('galeri')">🏢 Galeri Merkez</div>
-            <div class="nav-item" id="nav-mahalle" onclick="go('mahalle')">🏘️ Mahalle (Cami/Market)</div>
-            <div class="nav-item" id="nav-sanayi" onclick="go('sanayi')">🔧 Sanayi Sitesi</div>
-            <div class="nav-item" id="nav-tefeci" onclick="go('tefeci')">💀 Tefeci Mekanı</div>
-            <button class="btn btn-red" onclick="nextDay()" style="margin-top:auto">🌙 Günü Bitir</button>
+    <div class="game-body">
+        <div class="nav-menu">
+            <div class="nav-item clickable active" id="nav-galeri" onclick="go('galeri')">🏢 GALERİ MERKEZ</div>
+            <div class="nav-item clickable" id="nav-mahalle" onclick="go('mahalle')">🏠 MAHALLE & CAMİ</div>
+            <div class="nav-item clickable" id="nav-sanayi" onclick="go('sanayi')">🔧 SANAYİ SİTESİ</div>
+            <div class="nav-item clickable" id="nav-tefeci" onclick="go('tefeci')">💀 TEFECİ (BABA)</div>
+            <button class="btn btn-red clickable" onclick="nextDay()" style="margin-top:auto">🌙 GÜNÜ BİTİR</button>
         </div>
 
-        <div class="action-center">
-            <div id="npc-avatar" class="npc-box">🤵</div>
-            <h2 id="npc-title" style="margin:5px 0">Hoşgeldin Kral</h2>
-            <p id="npc-speech" style="max-width: 400px; font-style: italic;">"Bugün galeri için güzel bir gün!"</p>
-            
-            <div id="action-btns" style="pointer-events: auto; width: 300px;">
-                </div>
+        <div class="center-stage">
+            <div class="npc-area clickable">
+                <div id="npc-avatar" style="font-size: 5em;">🤵</div>
+                <h3 id="npc-title">Galerici Mahmut</h3>
+                <p id="npc-speech">"Piyasa bugün alev alev kral!"</p>
+                <div id="action-btns">
+                    </div>
+            </div>
         </div>
 
-        <div class="panel car-info">
+        <div class="panel right-panel clickable">
             <input type="text" id="galName" value="TUNA GALERİ">
-            <div id="car-preview" style="height: 150px; border: 1px solid #333; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 4em;">🏢</div>
-            <h3 id="car-name" style="text-align:center; margin:0">Araç Yok</h3>
-            <p id="car-stat" style="text-align:center; color:#888; font-size:0.9em">Piyasa: -</p>
-            <div id="car-ctrl" style="pointer-events: auto;">
-                 <button class="btn btn-blue" id="main-act-btn" onclick="pazarAra()">🚗 Araba Ara</button>
+            <div id="car-preview" style="height: 120px; background: #111; border: 1px solid #333; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 4em;">🏢</div>
+            <h4 id="car-name" style="text-align:center; margin:0">ARAÇ YOK</h4>
+            <p id="car-stat" style="text-align:center; color:#888; font-size:0.8em; margin: 5px 0;">Değer: -</p>
+            <div id="car-ctrl">
+                 <button class="btn btn-blue" id="main-act-btn" onclick="pazarAra()">🚗 ARABA ARA</button>
             </div>
         </div>
     </div>
@@ -87,42 +94,24 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// --- OYUN VERİSİ ---
 const carModels = [
-    {n:"Tofaş Şahin", p:250000, c:0xffffff, icon:"🚗"}, {n:"Toros", p:180000, c:0xdddddd, icon:"🚙"},
-    {n:"BMW M4", p:5500000, c:0x0000ff, icon:"🏎️"}, {n:"Mercedes G63", p:15000000, c:0x222222, icon:"🚜"},
-    {n:"Bugatti", p:90000000, c:0x0000bb, icon:"🚀"}
+    {n:"Tofaş Şahin", p:250000, c:0xffffff, icon:"🚗"},
+    {n:"Fiat Egea", p:900000, c:0xaaaaaa, icon:"🚙"},
+    {n:"BMW M4", p:6000000, c:0x0000ff, icon:"🏎️"},
+    {n:"Mercedes G63", p:16000000, c:0x222222, icon:"🚜"}
 ];
 
-let state = {
-    money: 300000, hunger: 20, stress: 10, faith: 50, day: 0,
-    loc: 'galeri', car: null, npcPrice: 0, tempCar: null
-};
+let state = { money: 300000, hunger: 20, stress: 10, faith: 50, day: 0, loc: 'galeri', car: null, npcPrice: 0, tempCar: null };
 
-// --- THREE.JS (GELİŞMİŞ ARABA MODELİ) ---
+// 3D SAHNE (SADECE GÖRSEL)
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
-const carGroup = new THREE.Group();
-const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 4.5), new THREE.MeshStandardMaterial({color: 0xffffff}));
-const top = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 2.2), new THREE.MeshStandardMaterial({color: 0xffffff}));
-top.position.y = 0.6; top.position.z = -0.3;
-const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
-const wheelMat = new THREE.MeshStandardMaterial({color: 0x111111});
-for(let x=-1; x<=1; x+=2) for(let z=-1.5; z<=1.5; z+=3) {
-    let w = new THREE.Mesh(wheelGeo, wheelMat);
-    w.rotation.z = Math.PI/2; w.position.set(x*1.1, -0.3, z);
-    carGroup.add(w);
-}
-carGroup.add(body, top); scene.add(carGroup);
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 const light = new THREE.DirectionalLight(0xffffff, 1); light.position.set(5,10,5); scene.add(light);
-camera.position.set(6, 4, 8); camera.lookAt(0,0,0);
-
-// --- OYUN FONKSİYONLARI ---
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+camera.position.set(5, 5, 5); camera.lookAt(0,0,0);
 
 function go(target) {
     state.loc = target;
@@ -133,17 +122,18 @@ function go(target) {
     btns.innerHTML = "";
     
     if(target === 'galeri') {
-        setNPC("🤵", "Galerici Mahmut", "Piyasa bugünlerde çok hareketli!");
+        setNPC("🤵", "Galerici Mahmut", "Hayırlı işler kral, ne yapıyoruz?");
     } else if(target === 'mahalle') {
-        setNPC("👳", "Hacı Abi", "Selamun aleyküm evlat, huzur burada.");
-        btns.innerHTML = `<button class="btn btn-green" onclick="pray()">🕌 Namaz Kıl (İman +30)</button>
-                          <button class="btn btn-gold" onclick="eat()">🛒 Marketten Doy (-₺2k)</button>`;
+        setNPC("👳", "Hacı Abi", "Selamun aleyküm, cami ve market burada.");
+        btns.innerHTML = `<button class="btn btn-green" onclick="pray()">🕌 NAMAZ KIL (İMAN +40)</button>
+                          <button class="btn btn-gold" onclick="eat()">🛒 MARKET (-₺2.000)</button>`;
     } else if(target === 'sanayi') {
-        setNPC("👨‍🔧", "Usta Nuri", "Getir arabayı da bir ayar çekelim.");
-        if(state.car) btns.innerHTML = `<button class="btn btn-blue" onclick="modify()">🛠️ Modifiye Yap (-₺100k)</button>`;
+        setNPC("👨‍🔧", "Usta Nuri", "Getir arabayı da canavar yapalım.");
+        if(state.car) btns.innerHTML = `<button class="btn btn-blue" onclick="modify()">🛠️ MODİFİYE YAP (-₺100k)</button>`;
+        else setNPC("👨‍🔧", "Usta Nuri", "E hani araba? Boş dükkana mı geldin?");
     } else if(target === 'tefeci') {
-        setNPC("🕶️", "Tefeci Remzi", "Para lazım mı koçum? Ama vaktinde öde!");
-        btns.innerHTML = `<button class="btn btn-red" onclick="kredi()">💰 ₺200k Kredi Çek</button>`;
+        setNPC("🕶️", "Tefeci Remzi", "Paraya mı sıkıştın? Gel gel...");
+        btns.innerHTML = `<button class="btn btn-red" onclick="kredi()">💰 ₺200k KREDİ ÇEK</button>`;
     }
     updateUI();
 }
@@ -165,38 +155,34 @@ function updateUI() {
         document.getElementById('car-preview').innerText = state.car.icon;
         document.getElementById('car-name').innerText = state.car.n;
         document.getElementById('car-stat').innerText = "Değer: ₺" + (state.car.p).toLocaleString();
-        document.getElementById('main-act-btn').innerText = "💰 Müşteri Ara";
+        document.getElementById('main-act-btn').innerText = "💰 MÜŞTERİ ARA";
         document.getElementById('main-act-btn').onclick = satisBaslat;
-        body.material.color.setHex(state.car.c); top.material.color.setHex(state.car.c);
-        carGroup.visible = true;
     } else {
         document.getElementById('car-preview').innerText = "🏢";
-        document.getElementById('car-name').innerText = "Araç Yok";
-        document.getElementById('main-act-btn').innerText = "🚗 Araba Ara";
+        document.getElementById('car-name').innerText = "ARAÇ YOK";
+        document.getElementById('main-act-btn').innerText = "🚗 ARABA ARA";
         document.getElementById('main-act-btn').onclick = pazarAra;
-        carGroup.visible = false;
     }
 }
 
 function pazarAra() {
-    if(state.loc !== 'galeri') { alert("Araba bakmak için Galeriye gitmelisin!"); return; }
+    if(state.loc !== 'galeri') { alert("Galeriye gitmelisin!"); return; }
     let car = carModels[Math.floor(Math.random()*carModels.length)];
     state.tempCar = car;
-    state.npcPrice = Math.floor(car.p * (0.9 + Math.random() * 0.3));
-    setNPC("👤", "Satıcı", `Bu ${car.n} için ₺${state.npcPrice.toLocaleString()} istiyorum. Ne dersin?`);
+    state.npcPrice = Math.floor(car.p * (0.9 + Math.random() * 0.2));
+    setNPC("👤", "Satıcı", `Bu ${car.n} için ₺${state.npcPrice.toLocaleString()} istiyorum.`);
     document.getElementById('action-btns').innerHTML = `
-        <button class="btn btn-green" onclick="buyConfirm()">✅ Satın Al</button>
-        <button class="btn btn-blue" onclick="negotiate(true)">🤝 Pazarlık Yap</button>
+        <button class="btn btn-green" onclick="buyConfirm()">✅ SATIN AL</button>
+        <button class="btn btn-blue" onclick="pazarlik()">🤝 PAZARLIK ET</button>
     `;
 }
 
-function negotiate(buyMode) {
-    if(state.faith > 70) {
+function pazarlik() {
+    if(state.faith > 60) {
         state.npcPrice = Math.floor(state.npcPrice * 0.9);
-        setNPC("👤", "Satıcı", `Güzel konuştun, ₺${state.npcPrice.toLocaleString()} olsun o zaman.`);
+        setNPC("👤", "Satıcı", "Dürüst adama benziyorsun, fiyattan indim.");
     } else {
-        state.stress += 10;
-        setNPC("👤", "Satıcı", "Nuh diyorum peygamber demiyorum, son fiyat!");
+        alert("İman barın düşük, sana güvenmiyorlar!");
     }
 }
 
@@ -204,19 +190,15 @@ function buyConfirm() {
     if(state.money >= state.npcPrice) {
         state.money -= state.npcPrice;
         state.car = state.tempCar;
-        state.tempCar = null;
         go('galeri');
     } else alert("Para yetmiyor!");
 }
 
 function satisBaslat() {
-    let customerPrice = Math.floor(state.car.p * (0.8 + Math.random() * 0.5));
-    state.npcPrice = customerPrice;
-    setNPC("🤵", "Müşteri", `Arabanıza ₺${customerPrice.toLocaleString()} veririm. Satar mısınız?`);
-    document.getElementById('action-btns').innerHTML = `
-        <button class="btn btn-green" onclick="sellConfirm()">🤝 Satıyorum</button>
-        <button class="btn btn-blue" onclick="negotiate(false)">💹 Fiyat Arttır</button>
-    `;
+    let p = Math.floor(state.car.p * (0.8 + Math.random() * 0.6));
+    state.npcPrice = p;
+    setNPC("🤵", "Müşteri", `₺${p.toLocaleString()} nakit veririm.`);
+    document.getElementById('action-btns').innerHTML = `<button class="btn btn-green" onclick="sellConfirm()">🤝 SATTIM GİTTİ</button>`;
 }
 
 function sellConfirm() {
@@ -225,19 +207,19 @@ function sellConfirm() {
     go('galeri');
 }
 
-function pray() { state.faith = 100; state.stress = 0; alert("Huzur doldu için..."); updateUI(); }
+function pray() { state.faith = 100; state.stress = 0; alert("Huzur buldun."); updateUI(); }
 function eat() { state.money -= 2000; state.hunger = 0; updateUI(); }
-function modify() { state.money -= 100000; state.car.p += 250000; alert("Usta canavar yaptı!"); updateUI(); }
-function kredi() { state.money += 200000; alert("Tefeci: Gözüm üzerinde..."); updateUI(); }
+function modify() { state.money -= 100000; state.car.p += 300000; alert("Araba fena oldu!"); updateUI(); }
+function kredi() { state.money += 200000; alert("Tefeci parayı verdi, dikkatli öde."); updateUI(); }
 
 function nextDay() {
     state.day++; if(state.day > 6) state.day = 0;
     state.hunger += 20;
-    if(state.day === 6) { state.money = Math.floor(state.money * 0.85); alert("Pazar vergisi kesildi!"); }
+    if(state.day === 6) { state.money = Math.floor(state.money * 0.85); alert("Haftalık vergi kesildi!"); }
     go('galeri');
 }
 
-function animate() { requestAnimationFrame(animate); carGroup.rotation.y += 0.01; renderer.render(scene, camera); }
+function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
 animate();
 updateUI();
 </script>
