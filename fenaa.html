@@ -2,136 +2,149 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Retro Araba Galerisi</title>
-
+<title>3D Araba Galerisi</title>
 <style>
-body {
-  background:#111;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-  margin-top:30px;
-}
-
-select, input, button {
-  font-size:16px;
-  padding:8px;
-  margin:5px;
-}
-
-/* --- RETRO ARABA --- */
-.araba {
-  position: relative;
-  width: 160px;
-  height: 60px;
-  margin: 30px auto;
-}
-
-.govde {
-  position: absolute;
-  width: 160px;
-  height: 40px;
-  background: #c0392b;
-  top: 10px;
-}
-
-.cam {
-  position: absolute;
-  width: 60px;
-  height: 20px;
-  background: #3498db;
-  top: 0;
-  left: 50px;
-}
-
-.teker {
-  position: absolute;
-  width: 25px;
-  height: 25px;
-  background: black;
-  border-radius: 50%;
-  bottom: -10px;
-}
-
-.teker.sol { left: 20px; }
-.teker.sag { right: 20px; }
-
-/* Model renkleri */
-.clio .govde { background:#27ae60; }
-.egea .govde { background:#f39c12; }
-.bmw .govde { background:#2980b9; }
-.retro .govde { background:#8e44ad; }
+  body { background:#0f0f0f; color:#fff; font-family:Arial; margin:0; }
+  header { padding:16px; text-align:center; background:#151515; }
+  .para { font-size:20px; }
+  .container { display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:16px; }
+  .panel { background:#151515; border-radius:10px; padding:12px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
+  .card { background:#1d1d1d; border-radius:10px; overflow:hidden; }
+  .card img { width:100%; height:140px; object-fit:cover; }
+  .card .c { padding:10px; }
+  button { padding:8px 12px; border:none; border-radius:8px; cursor:pointer; }
+  .buy { background:#2ecc71; }
+  .sell { background:#e67e22; }
+  .muted { color:#aaa; font-size:13px; }
 </style>
 </head>
-
 <body>
 
-<h1>🚗 Retro Araba Galerisi</h1>
-<h2>Bakiye: <span id="para">0</span> TL</h2>
+<header>
+  <h1>🚗 3D Araba Galerisi</h1>
+  <div class="para">Bakiye: <b id="para">500000</b> TL</div>
+</header>
 
-<select id="model" onchange="goster()">
-  <option value="clio">Renault Clio</option>
-  <option value="egea">Fiat Egea</option>
-  <option value="bmw">BMW 3.20</option>
-  <option value="retro">Retro 1985</option>
-</select>
+<div class="container">
+  <!-- NPC GALERİ (AL) -->
+  <div class="panel">
+    <h2>NPC Galerisi (Al)</h2>
+    <div id="npc" class="grid"></div>
+  </div>
 
-<br>
-<input id="fiyat" type="number" placeholder="Satış fiyatı">
-<br>
-<button onclick="satis()">Sat</button>
-
-<!-- ARABA ÇİZİMİ -->
-<div id="araba" class="araba clio">
-  <div class="cam"></div>
-  <div class="govde"></div>
-  <div class="teker sol"></div>
-  <div class="teker sag"></div>
+  <!-- SENİN GARAJ (SAT) -->
+  <div class="panel">
+    <h2>Garajın (Sat)</h2>
+    <div id="garaj" class="grid"></div>
+    <p class="muted">İpucu: Ucuza al, pahalıya sat.</p>
+  </div>
 </div>
 
-<p id="sonuc"></p>
-
 <script>
-let para = 0;
+let para = 500000;
+const paraEl = document.getElementById("para");
 
-const arabalar = {
-  clio:  { taban:700000, talep:0.8 },
-  egea:  { taban:750000, talep:0.85 },
-  bmw:   { taban:1800000, talep:0.6 },
-  retro: { taban:450000, talep:0.95 } // retro ucuz ama çok tutulur
-};
+const modeller = [
+  {
+    id:"bmw320",
+    ad:"BMW 320i",
+    al:1200000,
+    sat:1350000,
+    img:"https://images.unsplash.com/photo-1549921296-3c9b4b1f87a2"
+  },
+  {
+    id:"audiA4",
+    ad:"Audi A4",
+    al:1250000,
+    sat:1400000,
+    img:"https://images.unsplash.com/photo-1542362567-b07e54358753"
+  },
+  {
+    id:"c200",
+    ad:"Mercedes C200",
+    al:1450000,
+    sat:1650000,
+    img:"https://images.unsplash.com/photo-1541899481282-d53bffe3c35d"
+  },
+  {
+    id:"supra",
+    ad:"Toyota Supra",
+    al:2200000,
+    sat:2550000,
+    img:"https://images.unsplash.com/photo-1549924231-f129b911e442"
+  },
+  {
+    id:"golf",
+    ad:"VW Golf",
+    al:900000,
+    sat:1050000,
+    img:"https://images.unsplash.com/photo-1552519507-da3b142c6e3d"
+  },
+  {
+    id:"mustang",
+    ad:"Ford Mustang",
+    al:2600000,
+    sat:3000000,
+    img:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8"
+  }
+];
 
-function goster() {
-  let secim = document.getElementById("model").value;
-  let arabaDiv = document.getElementById("araba");
-  arabaDiv.className = "araba " + secim;
+let garaj = [];
+
+function render() {
+  paraEl.innerText = para.toLocaleString("tr-TR");
+
+  const npc = document.getElementById("npc");
+  npc.innerHTML = "";
+  modeller.forEach(m => {
+    const d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML = `
+      <img src="${m.img}">
+      <div class="c">
+        <b>${m.ad}</b>
+        <div class="muted">Alış: ${m.al.toLocaleString("tr-TR")} TL</div>
+        <button class="buy">NPC'den Al</button>
+      </div>`;
+    d.querySelector("button").onclick = () => al(m);
+    npc.appendChild(d);
+  });
+
+  const g = document.getElementById("garaj");
+  g.innerHTML = "";
+  garaj.forEach((m, i) => {
+    const d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML = `
+      <img src="${m.img}">
+      <div class="c">
+        <b>${m.ad}</b>
+        <div class="muted">Satış: ${m.sat.toLocaleString("tr-TR")} TL</div>
+        <button class="sell">Sat</button>
+      </div>`;
+    d.querySelector("button").onclick = () => sat(i);
+    g.appendChild(d);
+  });
 }
 
-function satis() {
-  let secim = document.getElementById("model").value;
-  let fiyat = parseInt(document.getElementById("fiyat").value);
-  let sonuc = document.getElementById("sonuc");
-  let araba = arabalar[secim];
-
-  if (isNaN(fiyat) || fiyat <= 0) {
-    sonuc.innerText = "Fiyat gir aq 😄";
-    return;
-  }
-
-  if (fiyat > araba.taban * 1.4) {
-    sonuc.innerText = "Çok pahalı, müşteri kaçtı ❌";
-    return;
-  }
-
-  if (Math.random() < araba.talep) {
-    para += fiyat;
-    sonuc.innerText = "Satıldı! +" + fiyat + " TL 💰";
-  } else {
-    sonuc.innerText = "Pazarlık olmadı, müşteri gitti ❌";
-  }
-
-  document.getElementById("para").innerText = para;
+function al(m) {
+  if (para < m.al) { alert("Yetersiz bakiye"); return; }
+  para -= m.al;
+  garaj.push(m);
+  render();
 }
+
+function sat(i) {
+  const m = garaj[i];
+  // küçük pazarlık şansı
+  const bonus = Math.random() < 0.25 ? Math.floor(m.sat * 0.05) : 0;
+  para += (m.sat + bonus);
+  garaj.splice(i,1);
+  render();
+}
+
+render();
 </script>
 
 </body>
