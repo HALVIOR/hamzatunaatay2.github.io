@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tuna Galeri: Far Sistemi Update</title>
+<title>Tuna Galeri: Pro Drive & Radio</title>
 <style>
     :root { --bg: #050505; --card: #111; --gold: #ffd700; --red: #ff4d4d; --green: #2ecc71; --blue: #3498db; }
     body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -15,19 +15,29 @@
     .nav-btn { background: var(--card); border: 1px solid #333; color: #fff; padding: 15px; border-radius: 10px; cursor: pointer; text-align: left; }
     .nav-btn.active { background: var(--blue); border-color: #fff; }
     .stage { background: #000; border-radius: 20px; border: 1px solid #333; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    
+    /* DRIVE UI */
     #drive-ui { position: absolute; top: 20px; width: 100%; text-align: center; display: none; pointer-events: none; z-index: 50; }
-    #timer-display { font-size: 2em; color: var(--red); font-weight: bold; text-shadow: 2px 2px 5px #000; }
-    #time-selector { position: absolute; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; display: none; z-index: 60; }
+    #radio-ctrl { position: absolute; bottom: 20px; right: 20px; z-index: 100; display: none; }
+    
+    /* SEÇİM EKRANI */
+    #drive-setup { position: absolute; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; display: none; z-index: 60; width: 300px; }
+
     .sidebar { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #333; z-index: 10; display: flex; flex-direction: column; gap: 10px; }
     .car-card { background: #000; height: 140px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 5em; border: 2px dashed #444; }
-    .btn { border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 5px; }
+    .btn { border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 8px; font-size: 14px; }
     .btn-green { background: var(--green); color: #000; }
     .btn-blue { background: var(--blue); color: #fff; }
     .btn-gold { background: var(--gold); color: #000; }
+    .btn-red { background: var(--red); color: #fff; }
     #three-canvas { width: 100%; height: 100%; display: none; }
 </style>
 </head>
 <body>
+
+    <audio id="game-radio" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
 
     <div class="top-bar">
         <div>💰 <span id="money-val" style="color:var(--green)">300,000</span></div>
@@ -41,27 +51,42 @@
             <button class="nav-btn active" onclick="loc('galeri')">🏢 GALERİ</button>
             <button class="nav-btn" onclick="loc('mahalle')">🏘️ MAHALLE</button>
             <button class="nav-btn" onclick="loc('sanayi')">🔧 SANAYİ</button>
-            <button class="btn btn-red" style="margin-top:auto; background:var(--red); color:#fff" onclick="nextDay()">🌙 GÜNÜ BİTİR</button>
+            <button class="btn btn-red" style="margin-top:auto" onclick="nextDay()">🌙 GÜNÜ BİTİR</button>
         </div>
 
         <div class="stage" id="stage-area">
             <div id="drive-ui">
-                <div id="timer-display">Kalan: 00:00</div>
-                <p style="font-size:1.2em">Puan: <span id="drive-score">0</span></p>
+                <div id="timer-display" style="font-size:24px; color:var(--red)">00:00</div>
+                <p>Puan: <span id="drive-score">0</span> | Hız: <span id="speed-label">-</span></p>
             </div>
 
-            <div id="time-selector">
-                <h2 style="color:var(--gold)">Test Sürüşü Süresi</h2>
-                <button class="btn btn-blue" onclick="initDrive(1)">1 Dakika</button>
-                <button class="btn btn-blue" onclick="initDrive(2)">2 Dakika</button>
-                <button class="btn btn-blue" onclick="initDrive(5)">5 Dakika</button>
-                <button class="btn btn-red" style="background:none; border:1px solid #444" onclick="cancelDrive()">İptal</button>
+            <div id="radio-ctrl">
+                <button class="btn btn-gold" onclick="toggleRadio()" style="width: auto; padding: 10px 20px;">📻 RADYO: <span id="rad-status">KAPALI</span></button>
+            </div>
+
+            <div id="drive-setup">
+                <h3 style="color:var(--gold); margin-top:0;">TEST SÜRÜŞÜ AYARLARI</h3>
+                <p>Süre Seç:</p>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn btn-blue" onclick="setDur(1)">1 Dk</button>
+                    <button class="btn btn-blue" onclick="setDur(2)">2 Dk</button>
+                    <button class="btn btn-blue" onclick="setDur(5)">5 Dk</button>
+                </div>
+                <p>Hız Seç:</p>
+                <div style="display:flex; gap:5px;">
+                    <button id="s-1" class="btn btn-green" onclick="setSpd(1, this)">YAVAŞ</button>
+                    <button id="s-2" class="btn btn-gold" onclick="setSpd(1.8, this)">ORTA</button>
+                    <button id="s-3" class="btn btn-red" onclick="setSpd(2.6, this)">HIZLI</button>
+                </div>
+                <hr style="border:0; border-top:1px solid #333; margin:15px 0">
+                <button class="btn btn-green" style="font-size:18px" onclick="startEngine()">KONTAĞI ÇEVİR!</button>
+                <button class="btn btn-red" style="background:none; border:1px solid #444" onclick="cancelSetup()">VAZGEÇ</button>
             </div>
             
             <div id="npc-view" style="text-align:center">
                 <div id="npc-avatar" style="font-size: 6em;">🤵</div>
                 <h3 id="npc-name">Mahmut</h3>
-                <p id="npc-text">"Görüş açın net olsun kral, farları açtık!"</p>
+                <p id="npc-text">"Test sürüşü mü? Ayarlarını yap başlayalım."</p>
                 <div id="action-btns" style="width: 250px; margin: 0 auto;"></div>
             </div>
 
@@ -88,6 +113,7 @@
 
     let state = { money: 300000, hunger: 20, faith: 50, day: 0, car: null, loc: 'galeri', score: 0 };
     let driveActive = false, driveTimer = 0, driveInterval = null;
+    let selectedDuration = 1, selectedSpeed = 1;
 
     // --- 3D SETUP ---
     const canvas = document.getElementById('three-canvas');
@@ -96,7 +122,7 @@
     const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 
-    // Yol
+    // Yol ve Çizgiler
     const roadGroup = new THREE.Group();
     const roadMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
     const road = new THREE.Mesh(new THREE.PlaneGeometry(15, 250), roadMat);
@@ -113,21 +139,7 @@
         lines.push(l);
     }
 
-    // Sokak Lambaları
-    const lamps = [];
-    function createLamp(z) {
-        const g = new THREE.Group();
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 8), new THREE.MeshStandardMaterial({color:0x333333}));
-        pole.position.set(-7.5, 4, z);
-        const bulb = new THREE.PointLight(0xffaa00, 15, 25);
-        bulb.position.set(-6, 7.5, z);
-        g.add(pole, bulb);
-        scene.add(g);
-        lamps.push(g);
-    }
-    for(let i=0; i<10; i++) createLamp(-i*30);
-
-    // --- OYUNCU ARACI VE FARLAR ---
+    // --- ARABA VE FARLAR ---
     const playerCar = new THREE.Group();
     const headlightL = new THREE.SpotLight(0xffffff, 50, 40, Math.PI/6, 0.5);
     const headlightR = new THREE.SpotLight(0xffffff, 50, 40, Math.PI/6, 0.5);
@@ -139,77 +151,62 @@
         const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.8), new THREE.MeshStandardMaterial({color}));
         cabin.position.set(0, 1, -0.2);
         
-        // Farlar (Görsel)
-        const lampGeo = new THREE.BoxGeometry(0.4, 0.2, 0.1);
-        const lampMat = new THREE.MeshBasicMaterial({color: 0xffffff});
-        const f1 = new THREE.Mesh(lampGeo, lampMat); f1.position.set(0.5, 0.5, -1.76);
-        const f2 = new THREE.Mesh(lampGeo, lampMat); f2.position.set(-0.5, 0.5, -1.76);
-        
-        // Tekerlekler
-        const wMat = new THREE.MeshStandardMaterial({color: 0x111111});
-        const wGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 12);
-        const wheels = [ [0.8,0.4,1.2], [-0.8,0.4,1.2], [0.8,0.4,-1.2], [-0.8,0.4,-1.2] ];
-        wheels.forEach(pos => {
-            const w = new THREE.Mesh(wGeo, wMat); w.rotation.z = Math.PI/2; w.position.set(...pos);
-            playerCar.add(w);
-        });
-
         // Farları (Işık) Konumlandır
         headlightL.position.set(0.5, 0.6, -1.7); headlightL.target.position.set(0.5, 0, -20);
         headlightR.position.set(-0.5, 0.6, -1.7); headlightR.target.position.set(-0.5, 0, -20);
-        
-        playerCar.add(body, cabin, f1, f2, headlightL, headlightR, headlightL.target, headlightR.target);
+        playerCar.add(body, cabin, headlightL, headlightR, headlightL.target, headlightR.target);
     }
     scene.add(playerCar);
-
     scene.add(new THREE.AmbientLight(0xffffff, 0.1));
     camera.position.set(0, 6, 11);
     camera.lookAt(0, 0, -3);
 
-    // --- ENGELLER (Daha Görünür) ---
     let enemies = [];
     function addEnemy() {
         const g = new THREE.Group();
         const eBody = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 3), new THREE.MeshStandardMaterial({color: 0x333333}));
         eBody.position.y = 0.5;
-        
-        // Engel Arka Lambaları (Kırmızı Parlama)
         const stopMat = new THREE.MeshBasicMaterial({color: 0xff0000});
         const s1 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), stopMat); s1.position.set(0.5, 0.6, 1.51);
         const s2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.1), stopMat); s2.position.set(-0.5, 0.6, 1.51);
-        
         g.add(eBody, s1, s2);
         g.position.set((Math.random()-0.5)*12, 0, -100);
         scene.add(g);
         enemies.push(g);
     }
 
-    // --- SÜRÜŞ DÖNGÜSÜ ---
-    function animateDrive() {
-        if(!driveActive) return;
-        requestAnimationFrame(animateDrive);
-
-        const speed = 1.4;
-        lines.forEach(l => { l.position.z += speed; if(l.position.z > 20) l.position.z = -200; });
-        lamps.forEach(l => { l.position.z += speed; if(l.position.z > 30) l.position.z = -200; });
-
-        if(Math.random() < 0.04) addEnemy();
-        enemies.forEach((e, i) => {
-            e.position.z += speed * 1.7;
-            if(Math.abs(e.position.z - playerCar.position.z) < 3.2 && Math.abs(e.position.x - playerCar.position.x) < 1.6) endDrive(true);
-            if(e.position.z > 25) { scene.remove(e); enemies.splice(i, 1); state.score += 5000; }
-        });
-
-        document.getElementById('drive-score').innerText = state.score.toLocaleString();
-        renderer.render(scene, camera);
+    // --- DRIVE SETUP FUNCTIONS ---
+    function openDriveSetup() { 
+        if(!state.car) return;
+        document.getElementById('drive-setup').style.display = "block"; 
+    }
+    function cancelSetup() { document.getElementById('drive-setup').style.display = "none"; }
+    function setDur(m) { selectedDuration = m; alert(m + " Dakika seçildi."); }
+    function setSpd(s, btn) { 
+        selectedSpeed = s; 
+        document.getElementById('speed-label').innerText = s === 1 ? "Yavaş" : s === 1.8 ? "Orta" : "Hızlı";
+        alert("Hız seviyesi güncellendi.");
     }
 
-    function initDrive(mins) {
-        document.getElementById('time-selector').style.display = "none";
-        driveActive = true; state.score = 0; driveTimer = mins * 60;
+    function toggleRadio() {
+        const rad = document.getElementById('game-radio');
+        const status = document.getElementById('rad-status');
+        if(rad.paused) { rad.play(); status.innerText = "AÇIK"; }
+        else { rad.pause(); status.innerText = "KAPALI"; }
+    }
+
+    // --- SÜRÜŞ BAŞLATMA ---
+    function startEngine() {
+        document.getElementById('drive-setup').style.display = "none";
+        driveActive = true; 
+        state.score = 0; 
+        driveTimer = selectedDuration * 60;
+        
         document.getElementById('npc-view').style.display = "none";
         canvas.style.display = "block";
         document.getElementById('drive-ui').style.display = "block";
+        document.getElementById('radio-ctrl').style.display = "block";
+        
         buildCar(state.car.c);
         
         driveInterval = setInterval(() => {
@@ -221,32 +218,50 @@
         animateDrive();
     }
 
-    function endDrive(crash) {
-        driveActive = false; clearInterval(driveInterval);
-        if(crash) { state.car.p = Math.floor(state.car.p * 0.7); alert("KAZA!"); }
-        else { state.car.p += state.score; alert("Tamamlandı!"); }
-        enemies.forEach(e => scene.remove(e)); enemies = [];
-        canvas.style.display = "none"; document.getElementById('drive-ui').style.display = "none";
-        document.getElementById('npc-view').style.display = "block"; updateUI();
+    function animateDrive() {
+        if(!driveActive) return;
+        requestAnimationFrame(animateDrive);
+
+        const currentSpeed = selectedSpeed;
+        lines.forEach(l => { l.position.z += currentSpeed * 1.5; if(l.position.z > 20) l.position.z = -200; });
+        
+        if(Math.random() < 0.04) addEnemy();
+        enemies.forEach((e, i) => {
+            e.position.z += currentSpeed * 2;
+            if(Math.abs(e.position.z - playerCar.position.z) < 3.2 && Math.abs(e.position.x - playerCar.position.x) < 1.6) endDrive(true);
+            if(e.position.z > 25) { scene.remove(e); enemies.splice(i, 1); state.score += (1000 * selectedSpeed); }
+        });
+
+        document.getElementById('drive-score').innerText = Math.floor(state.score).toLocaleString();
+        renderer.render(scene, camera);
     }
 
-    function openTimeSelector() { if(state.car) document.getElementById('time-selector').style.display = "block"; }
-    function cancelDrive() { document.getElementById('time-selector').style.display = "none"; }
+    function endDrive(crash) {
+        driveActive = false; clearInterval(driveInterval);
+        document.getElementById('game-radio').pause();
+        if(crash) { state.car.p = Math.floor(state.car.p * 0.7); alert("KAZA YAPTIN! Araç pert."); }
+        else { state.car.p += state.score; alert("Test sürüşü bitti! Müşteriye hazır."); }
+        enemies.forEach(e => scene.remove(e)); enemies = [];
+        canvas.style.display = "none"; document.getElementById('drive-ui').style.display = "none";
+        document.getElementById('radio-ctrl').style.display = "none";
+        document.getElementById('npc-view').style.display = "block"; 
+        updateUI();
+    }
 
     window.addEventListener('keydown', (e) => {
         if(!driveActive) return;
-        if(e.key === 'a' || e.key === 'ArrowLeft') playerCar.position.x = Math.max(-6, playerCar.position.x - 0.85);
-        if(e.key === 'd' || e.key === 'ArrowRight') playerCar.position.x = Math.min(6, playerCar.position.x + 0.85);
+        if(e.key === 'a' || e.key === 'ArrowLeft') playerCar.position.x = Math.max(-6, playerCar.position.x - 0.9);
+        if(e.key === 'd' || e.key === 'ArrowRight') playerCar.position.x = Math.min(6, playerCar.position.x + 0.9);
     });
 
-    // --- UI VE GALERİ ---
+    // --- GENEL UI ---
     function loc(l) {
         state.loc = l;
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         const area = document.getElementById('action-btns'); area.innerHTML = "";
-        if(l==='galeri') setNPC("🤵", "Mahmut", "Farlar xenon, önün aydınlık olsun.");
+        if(l==='galeri') setNPC("🤵", "Mahmut", "Radyoyu aç, keyfine bak.");
         if(l==='mahalle') {
-            setNPC("👳", "Hacı Abi", "Huzur burada.");
+            setNPC("👳", "Hacı Abi", "Yavaş git evlat, can taşıyorsun.");
             area.innerHTML = `<button class="btn btn-gold" onclick="pray()">🕌 NAMAZ KIL</button><button class="btn btn-blue" style="margin-top:5px" onclick="eat()">🛒 YEMEK</button>`;
         }
         if(l==='sanayi' && state.car) area.innerHTML = `<button class="btn btn-blue" onclick="modify()">🛠️ MODİFİYE (₺100k)</button>`;
@@ -263,7 +278,7 @@
             document.getElementById('car-img').innerText = state.car.i;
             document.getElementById('car-title').innerText = state.car.n;
             document.getElementById('car-info').innerText = "Değer: ₺" + state.car.p.toLocaleString();
-            ctrl.innerHTML = `<button class="btn btn-gold" onclick="openTimeSelector()">🏁 3D TEST SÜRÜŞÜ</button><button class="btn btn-blue" style="margin-top:5px" onclick="sellMenu()">💰 MÜŞTERİ BUL</button>`;
+            ctrl.innerHTML = `<button class="btn btn-gold" onclick="openDriveSetup()">🏁 3D TEST SÜRÜŞÜ</button><button class="btn btn-blue" style="margin-top:5px" onclick="sellMenu()">💰 MÜŞTERİ BUL</button>`;
         } else {
             document.getElementById('car-img').innerText = "🏢"; document.getElementById('car-title').innerText = "ARAÇ YOK";
             ctrl.innerHTML = `<button class="btn btn-blue" onclick="findCar()">🚗 ARAÇ ARA</button>`;
@@ -273,13 +288,13 @@
     function findCar() {
         let c = cars[Math.floor(Math.random()*cars.length)];
         let p = Math.floor(c.p * 0.9);
-        setNPC("👤", "Satıcı", `${c.n} var, düşünür müsün? ₺${p.toLocaleString()}`);
+        setNPC("👤", "Satıcı", `${c.n} verelim abime, ₺${p.toLocaleString()}`);
         document.getElementById('action-btns').innerHTML = `<button class="btn btn-green" onclick="buy('${c.n}', ${p}, ${c.c}, '${c.i}')">SATIN AL</button>`;
     }
     function buy(n,p,c,i) { if(state.money>=p){state.money-=p; state.car={n,p,c,i}; loc('galeri');} }
     function sellMenu() {
         let p = Math.floor(state.car.p * (0.8+Math.random()*0.5));
-        setNPC("🤵", "Müşteri", `₺${p.toLocaleString()} nakit çalışır.`);
+        setNPC("🤵", "Müşteri", `Bu araca ₺${p.toLocaleString()} sayarım.`);
         document.getElementById('action-btns').innerHTML = `<button class="btn btn-green" onclick="sell(${p})">SATTIM</button>`;
     }
     function sell(p) { state.money+=p; state.car=null; loc('galeri'); }
