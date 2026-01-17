@@ -1,251 +1,232 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Tuna Galeri: Underground King</title>
-<style>
-    :root { --neon: #00f2ff; --pink: #ff007f; --gold: #ffd700; --bg: #050505; }
-    body { margin: 0; background: var(--bg); color: #fff; font-family: 'Orbitron', sans-serif; overflow: hidden; }
-    
-    /* HUD & UI */
-    .game-ui { position: fixed; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; box-sizing: border-box; }
-    .top-stats { display: flex; gap: 20px; pointer-events: all; }
-    .stat-box { background: rgba(0,0,0,0.8); border: 1px solid var(--neon); padding: 15px; border-radius: 5px; box-shadow: 0 0 15px var(--neon); }
-    
-    /* Center Stage */
-    .main-container { display: flex; height: 100vh; padding: 20px; gap: 20px; }
-    .sidebar { width: 300px; background: rgba(15,15,15,0.9); border: 1px solid #333; padding: 20px; pointer-events: all; border-radius: 15px; }
-    .viewport { flex: 1; background: #000; border-radius: 20px; border: 2px solid #222; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    <meta charset="UTF-8">
+    <title>Tuna Galeri: Mafia City Pro</title>
+    <style>
+        :root { --neon: #00f2ff; --pink: #ff007f; --gold: #ffd700; --red: #ff4757; }
+        body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
+        /* HUD UI */
+        .hud { position: fixed; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; z-index: 100; pointer-events: none; }
+        .stat-card { background: rgba(0,0,0,0.85); border: 1px solid var(--neon); padding: 10px 15px; border-radius: 5px; pointer-events: all; margin-bottom: 5px; }
 
-    /* Dialog System */
-    .dialog-panel { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 80%; background: rgba(0,0,0,0.9); border: 2px solid var(--pink); padding: 20px; border-radius: 10px; display: none; text-align: center; }
-    .npc-name { color: var(--pink); font-weight: bold; margin-bottom: 10px; font-size: 20px; }
+        /* Main Screen Layout */
+        .main-ui { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
+        .side-menu { background: #0a0a0a; border-right: 2px solid #222; padding: 20px; z-index: 10; display: flex; flex-direction: column; }
+        .world-container { position: relative; }
 
-    /* Buttons */
-    .btn { background: #222; border: 1px solid var(--neon); color: var(--neon); padding: 12px; cursor: pointer; font-family: 'Orbitron'; transition: 0.3s; width: 100%; margin-bottom: 10px; }
-    .btn:hover { background: var(--neon); color: #000; box-shadow: 0 0 20px var(--neon); }
-    .btn-action { border-color: var(--pink); color: var(--pink); }
-    .btn-action:hover { background: var(--pink); color: #000; box-shadow: 0 0 20px var(--pink); }
+        /* Phone UI */
+        #phone { position: fixed; bottom: -380px; right: 30px; width: 220px; height: 400px; background: #111; border: 4px solid #333; border-radius: 30px; transition: 0.5s; z-index: 500; padding: 20px; box-sizing: border-box; }
+        #phone.active { bottom: 20px; border-color: var(--pink); box-shadow: 0 0 20px var(--pink); }
+        .contact { background: #1a1a1a; padding: 8px; margin-bottom: 5px; border-radius: 5px; cursor: pointer; font-size: 13px; border: 1px solid #333; }
+        .contact:hover { border-color: var(--neon); }
 
-    /* Speedo */
-    #speedo { position: absolute; bottom: 30px; right: 30px; color: var(--neon); text-align: right; display: none; }
-    canvas { width: 100%; height: 100%; display: none; }
-</style>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+        /* Action Modal */
+        #action-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0a0a0a; border: 2px solid var(--gold); padding: 30px; border-radius: 20px; display: none; z-index: 1000; min-width: 250px; text-align: center; }
+        .btn { background: #222; border: 1px solid var(--neon); color: #fff; padding: 12px; margin: 5px 0; width: 100%; cursor: pointer; border-radius: 8px; font-weight: bold; }
+        .btn:hover { background: var(--neon); color: #000; }
+
+        canvas { width: 100%; height: 100%; }
+        #speedo { position: absolute; bottom: 30px; left: 30px; font-size: 40px; color: var(--neon); font-family: 'Courier New', Courier, monospace; }
+    </style>
 </head>
 <body>
 
-<div class="game-ui">
-    <div class="top-stats">
-        <div class="stat-box">💰 PARA: <span id="u-money">500,000</span>₺</div>
-        <div class="stat-box">🔥 STRES: %<span id="u-stress">0</span></div>
-        <div class="stat-box">🕌 İMAN: %<span id="u-faith">100</span></div>
+<div class="hud">
+    <div>
+        <div class="stat-card">💰 PARA: <span id="h-money">500.000</span>₺</div>
+        <div class="stat-card" style="border-color:var(--pink)">🍔 TOKLUK: %<span id="h-hunger">100</span></div>
+    </div>
+    <div style="text-align: right;">
+        <div class="stat-card" style="border-color:var(--gold)">🏛️ BORÇ: <span id="h-debt">0</span>₺</div>
+        <div class="stat-card" style="border-color:var(--red)">🔥 STRES: %<span id="h-stress">0</span></div>
     </div>
 </div>
 
-<div class="main-container">
-    <div class="sidebar">
-        <h2 style="color:var(--neon); text-align:center;">TUNA GARAJ</h2>
-        <div id="active-car-info" style="margin-bottom: 20px;">
-            <div style="font-size:50px; text-align:center;" id="c-icon">🏢</div>
-            <h3 id="c-name" style="text-align:center; color:var(--pink);">Araç Yok</h3>
-            <p id="c-stats" style="font-size:12px; text-align:center; color:#888;">Hız: 0 | Yol Tutuş: 0</p>
-        </div>
-        <hr border="1" color="#333">
-        <button class="btn" onclick="setLoc('galeri')">🏢 GALERİ</button>
-        <button class="btn" onclick="setLoc('sanayi')">🔧 SANAYİ (TUNING)</button>
-        <button class="btn" onclick="setLoc('mahalle')">🏘️ MAHALLE</button>
-        <button class="btn btn-action" onclick="findCar()">🚗 ARAÇ KOVALA</button>
-        <button class="btn btn-action" onclick="startDrive()" id="drive-btn" style="display:none">🏎️ TESTE ÇIK</button>
+<div class="main-ui">
+    <div class="side-menu">
+        <h2 style="color:var(--neon); border-bottom:1px solid #333; padding-bottom:10px;">MAFIA OS v1.0</h2>
+        <div style="flex:1; overflow-y:auto;" id="npc-list">
+            </div>
+        <button class="btn" onclick="togglePhone()" style="border-color:var(--pink)">📱 TELEFONU AÇ</button>
     </div>
 
-    <div class="viewport" id="viewport">
-        <div class="dialog-panel" id="dialog">
-            <div class="npc-name" id="npc-name">Mahmut</div>
-            <div class="npc-text" id="npc-text">"Piyasada mal kalmadı usta, yeni araçlar bakmamız lazım."</div>
-            <div id="dialog-options" style="margin-top:15px; display:flex; gap:10px; justify-content:center;"></div>
+    <div class="world-container">
+        <div id="action-modal">
+            <h3 id="modal-title">NPC İSMİ</h3>
+            <p id="modal-desc">Konuşma içeriği...</p>
+            <div id="modal-actions"></div>
+            <button class="btn" style="border-color:var(--red); margin-top:15px;" onclick="closeModal()">KAPAT</button>
         </div>
-        <div id="speedo">
-            <h1 id="kmh" style="margin:0; font-size:60px;">0</h1>
-            <span>KM/H</span>
-        </div>
+        <div id="speedo">0 KM/H</div>
         <canvas id="game-canvas"></canvas>
+    </div>
+</div>
+
+<div id="phone">
+    <h4 style="margin:0 0 10px 0; color:var(--pink);">REHBER</h4>
+    <div id="contacts-list"></div>
+    <div id="incoming-call" style="display:none; margin-top:20px; text-align:center;">
+        <p id="caller-id" style="font-weight:bold;"></p>
+        <button class="btn" style="background:var(--neon); color:#000;" onclick="answerCall()">CEVAPLA (T)</button>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-    let state = { money: 500000, stress: 0, faith: 100, car: null, loc: 'galeri' };
-    let isDriving = false;
-    let driveSpeed = 0;
-    let targetSpeed = 0;
-    let carX = 0;
-    let shake = 0;
+    // --- OYUN AYARLARI ---
+    let state = { money: 500000, hunger: 100, stress: 0, debt: 0, carColor: 0x00f2ff };
+    const NPCs = [
+        { name: "Tefeci Hayri", icon: "🕶️", job: "Para Kaynağı", msg: "Para biterse kapım açık ama ödemezsen bacaklarını alırım.", type: "loan" },
+        { name: "Baron Ziya", icon: "🚬", job: "Mafya Babası", msg: "Şehirde bir iş yapılacaksa önce benden izin alınacak.", type: "mafia" },
+        { name: "Gurme Vedat", icon: "🍱", job: "Lokantacı", msg: "Açlıktan ölüyorsun yeğen, gel bir şeyler ye.", type: "food" },
+        { name: "Galerici Metin", icon: "🏎️", job: "Araç Satış", msg: "Liman altına yeni araçlar indi, gel bak.", type: "trade" },
+        { name: "Modifiyeci Sabri", icon: "🔧", job: "Tuning", msg: "Bu arabayı basmazsak asfalt küser.", type: "mod" }
+    ];
 
-    // --- LOGIC ---
-    function setLoc(l) {
-        state.loc = l;
-        const dialog = document.getElementById('dialog');
-        const options = document.getElementById('dialog-options');
-        dialog.style.display = 'block';
-        options.innerHTML = "";
+    // --- UI FONKSİYONLARI ---
+    const npcContainer = document.getElementById('npc-list');
+    const contactsContainer = document.getElementById('contacts-list');
 
-        if(l === 'galeri') {
-            setNPC("MAHMUT", "Dükkan senin kral. Çay taze, araba varsa piste geçelim.");
-            if(state.car) document.getElementById('drive-btn').style.display = 'block';
-        } else if(l === 'sanayi') {
-            setNPC("USTA SABRİ", "Turbo mu takalım, basık mı olsun? Malın değerini katlayalım.");
-            if(state.car) {
-                options.innerHTML = `
-                    <button class="btn" onclick="tune('turbo')">🚀 TURBO (100k)</button>
-                    <button class="btn" onclick="tune('susp')">📉 BASIKLIK (50k)</button>
-                `;
-            }
-        } else if(l === 'mahalle') {
-            setNPC("HACI AMCA", "Gel bi' abdest alalım, kafan dağılır.");
-            options.innerHTML = `<button class="btn" onclick="pray()">🕌 HUZUR BUL</button>`;
-        }
+    NPCs.forEach(npc => {
+        // Yan Menü
+        let div = document.createElement('div');
+        div.style = "background:#111; padding:10px; margin-bottom:10px; border-radius:5px; cursor:pointer;";
+        div.innerHTML = `<b style="color:var(--gold)">${npc.icon} ${npc.name}</b><br><small>${npc.job}</small>`;
+        div.onclick = () => openModal(npc);
+        npcContainer.appendChild(div);
+
+        // Telefon Rehberi
+        let contact = document.createElement('div');
+        contact.className = "contact";
+        contact.innerText = npc.name;
+        contact.onclick = () => { alert(npc.name + " aranıyor... Şuan meşgul."); };
+        contactsContainer.appendChild(contact);
+    });
+
+    function openModal(npc) {
+        document.getElementById('action-modal').style.display = 'block';
+        document.getElementById('modal-title').innerText = npc.name;
+        document.getElementById('modal-desc').innerText = npc.msg;
+        let area = document.getElementById('modal-actions');
+        area.innerHTML = "";
+
+        if(npc.type === "loan") createBtn(area, "100.000₺ Borç Al", () => { state.money += 100000; state.debt += 150000; updateUI(); });
+        if(npc.type === "food") createBtn(area, "Ziyafet Çek (₺5000)", () => { if(state.money>=5000){state.money-=5000; state.hunger=100; state.stress=0; updateUI();} });
+        if(npc.type === "mod") createBtn(area, "Neon Rengi (₺25k)", () => { if(state.money>=25000){state.money-=25000; state.carColor=Math.random()*0xffffff; createCar(); updateUI();} });
     }
 
-    function tune(type) {
-        if(type === 'turbo' && state.money >= 100000) {
-            state.money -= 100000; state.car.speedStat += 2; state.car.p += 200000;
-            setNPC("SABRİ", "Turbo ıslık çalıyor usta! Uçacaksın.");
-        } else if(type === 'susp' && state.money >= 50000) {
-            state.money -= 50000; state.car.gripStat += 2; state.car.p += 80000;
-            setNPC("SABRİ", "Araç yere yapıştı, virajın kralısın artık.");
-        }
-        updateUI();
+    function createBtn(parent, text, action) {
+        let b = document.createElement('button'); b.className = 'btn'; b.innerText = text; b.onclick = action; parent.appendChild(b);
     }
-
-    function findCar() {
-        const models = [
-            {n:"S2000", p:2500000, i:"🏎️", c:0xeeeeee, s:3, g:3},
-            {n:"Supra", p:8000000, i:"🐉", c:0xffaa00, s:5, g:4},
-            {n:"Şahin S", p:knk bu benden sana hediye olsun, i:"🚗", c:0xffffff, s:1, g:1},
-            {n:"M3 E46", p:3500000, i:"🔥", c:0x0033ff, s:4, g:3}
-        ];
-        const c = models[Math.floor(Math.random()*models.length)];
-        const price = Math.floor(c.p * (0.9 + Math.random()*0.3));
-        
-        setLoc('galeri');
-        setNPC("GALERİCİ", `${c.n} geldi. ₺${price.toLocaleString()} olur.`);
-        document.getElementById('dialog-options').innerHTML = `
-            <button class="btn" onclick="buyCar('${c.n}',${price},'${c.i}',${c.c},${c.s},${c.g})">ALDIM</button>
-            <button class="btn" onclick="setLoc('galeri')">GEÇ</button>
-        `;
-    }
-
-    function buyCar(n,p,i,c,s,g) {
-        if(state.money >= p) {
-            state.money -= p;
-            state.car = {n, p, i, c, speedStat: s, gripStat: g};
-            updateUI();
-            setLoc('galeri');
-        } else alert("Para yetersiz!");
-    }
-
-    function pray() { state.faith = 100; state.stress = 0; updateUI(); setNPC("HACI", "Allah kabul etsin..."); }
-
+    function closeModal() { document.getElementById('action-modal').style.display = 'none'; }
+    function togglePhone() { document.getElementById('phone').classList.toggle('active'); }
     function updateUI() {
-        document.getElementById('u-money').innerText = state.money.toLocaleString();
-        document.getElementById('u-stress').innerText = state.stress;
-        document.getElementById('u-faith').innerText = state.faith;
-        if(state.car) {
-            document.getElementById('c-name').innerText = state.car.n;
-            document.getElementById('c-icon').innerText = state.car.i;
-            document.getElementById('c-stats').innerText = `Hız: ${state.car.speedStat} | Yol Tutuş: ${state.car.gripStat}`;
-            document.getElementById('drive-btn').style.display = 'block';
-        }
+        document.getElementById('h-money').innerText = state.money.toLocaleString();
+        document.getElementById('h-hunger').innerText = Math.floor(state.hunger);
+        document.getElementById('h-stress').innerText = Math.floor(state.stress);
+        document.getElementById('h-debt').innerText = state.debt.toLocaleString();
     }
 
-    function setNPC(n, t) {
-        document.getElementById('npc-name').innerText = n;
-        document.getElementById('npc-text').innerText = `"${t}"`;
-    }
-
-    // --- ARCADE 3D ENGINE ---
-    const canvas = document.getElementById('game-canvas');
+    // --- 3D ŞEHİR MOTORU ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    scene.fog = new THREE.Fog(0x000000, 10, 150);
+    const camera = new THREE.PerspectiveCamera(75, (window.innerWidth-320)/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('game-canvas'), antialias: true });
+    renderer.setSize(window.innerWidth - 320, window.innerHeight);
 
-    // Yol (Gelişmiş Neon Görünüm)
-    const roadG = new THREE.PlaneGeometry(20, 1000);
-    const roadM = new THREE.MeshStandardMaterial({ color: 0x050505 });
-    const road = new THREE.Mesh(roadG, roadM);
-    road.rotation.x = -Math.PI/2;
-    scene.add(road);
+    // Zemin ve Yol Izgarası
+    const floor = new THREE.GridHelper(2000, 100, 0x333333, 0x111111);
+    scene.add(floor);
 
-    const lights = [];
-    for(let i=0; i<20; i++) {
-        const l = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 10), new THREE.MeshBasicMaterial({color: var(--neon)}));
-        l.position.set(0, 0.1, -i*50);
-        scene.add(l); lights.push(l);
+    // Şehir Binaları Oluşturma
+    for(let i=0; i<80; i++) {
+        let h = 10 + Math.random() * 40;
+        let w = 5 + Math.random() * 10;
+        let building = new THREE.Mesh(
+            new THREE.BoxGeometry(w, h, w),
+            new THREE.MeshStandardMaterial({color: 0x111111, wireframe: false})
+        );
+        building.position.set( (Math.random()-0.5)*400, h/2, (Math.random()-0.5)*400 );
+        // Bina pencereleri (neon)
+        let windows = new THREE.BoxHelper(building, Math.random() > 0.5 ? 0x00f2ff : 0xff007f);
+        scene.add(building, windows);
     }
 
-    const playerCar = new THREE.Group();
-    scene.add(playerCar);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-    const spot = new THREE.PointLight(0xff007f, 2, 50);
-    playerCar.add(spot);
-
-    function startDrive() {
-        isDriving = true;
-        canvas.style.display = 'block';
-        document.getElementById('speedo').style.display = 'block';
-        document.getElementById('dialog').style.display = 'none';
-        
-        // Arabayı İnşa Et
-        playerCar.clear();
-        const body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4), new THREE.MeshStandardMaterial({color: state.car.c}));
+    // Oyuncu Arabası
+    const player = new THREE.Group();
+    scene.add(player);
+    function createCar() {
+        player.clear();
+        let body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.7, 4), new THREE.MeshStandardMaterial({color: state.carColor}));
         body.position.y = 0.5;
-        playerCar.add(body);
-        
-        targetSpeed = state.car.speedStat * 1.5;
-        animate();
+        let glass = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.4, 1.5), new THREE.MeshStandardMaterial({color: 0x000000}));
+        glass.position.set(0, 0.9, 0.3);
+        player.add(body, glass);
+        let l1 = new THREE.PointLight(state.carColor, 2, 10); l1.position.set(0, 0, 0); player.add(l1);
     }
+    createCar();
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
-    function animate() {
-        if(!isDriving) return;
-        requestAnimationFrame(animate);
+    // Kontroller
+    let keys = {};
+    window.onkeydown = (e) => { keys[e.key.toLowerCase()] = true; if(e.key === 't') answerCall(); };
+    window.onkeyup = (e) => keys[e.key.toLowerCase()] = false;
 
-        // İvmelenme ve Hızlanma
-        driveSpeed = THREE.MathUtils.lerp(driveSpeed, targetSpeed, 0.05);
-        
-        // Yol akışı
-        lights.forEach(l => {
-            l.position.z += driveSpeed * 10;
-            if(l.position.z > 50) l.position.z = -800;
-        });
+    let speed = 0, rot = 0;
 
-        // Kamera Sallanma (Hız Efekti)
-        shake = (Math.random() - 0.5) * (driveSpeed * 0.05);
-        camera.position.set(shake, 6, 12);
-        camera.lookAt(playerCar.position.x, 0, -10);
+    function loop() {
+        requestAnimationFrame(loop);
 
-        // Vites Atma Simülasyonu (FOV değişimi)
-        camera.fov = 70 + (driveSpeed * 5);
-        camera.updateProjectionMatrix();
+        // Sürüş Mekaniği
+        if(keys['w']) speed = Math.min(speed + 0.01, 1.5);
+        else if(keys['s']) speed = Math.max(speed - 0.02, -0.4);
+        else speed *= 0.98;
 
-        document.getElementById('kmh').innerText = Math.floor(driveSpeed * 60);
+        if(keys['a']) rot += 0.04 * (speed > 0 ? 1 : -1);
+        if(keys['d']) rot -= 0.04 * (speed > 0 ? 1 : -1);
+
+        player.rotation.y = rot;
+        player.translateZ(-speed);
+
+        // Kamera Takibi (Hızla esner)
+        let camDist = 15 + (speed * 5);
+        let camHeight = 8 + (speed * 2);
+        let offset = new THREE.Vector3(0, camHeight, camDist).applyMatrix4(player.matrixWorld);
+        camera.position.lerp(offset, 0.1);
+        camera.lookAt(player.position);
+
+        // İstatistikler
+        state.hunger -= 0.005;
+        if(state.hunger < 20) state.stress += 0.01;
+        updateUI();
+
+        document.getElementById('speedo').innerText = Math.abs(Math.floor(speed * 140)) + " KM/H";
         renderer.render(scene, camera);
     }
 
-    window.addEventListener('keydown', (e) => {
-        if(!isDriving) return;
-        const step = 0.1 * state.car.gripStat;
-        if(e.key === 'a') playerCar.position.x -= step;
-        if(e.key === 'd') playerCar.position.x += step;
-        if(e.key === 'Escape') {
-            isDriving = false;
-            canvas.style.display = 'none';
-            document.getElementById('speedo').style.display = 'none';
-            setLoc('galeri');
-        }
-    });
+    // Telefon Arama Sistemi
+    function incomingCall() {
+        let p = document.getElementById('phone');
+        let caller = NPCs[Math.floor(Math.random()*NPCs.length)].name;
+        document.getElementById('caller-id').innerText = "📞 " + caller;
+        document.getElementById('incoming-call').style.display = 'block';
+        p.classList.add('active');
+        setTimeout(() => { 
+            p.classList.remove('active'); 
+            document.getElementById('incoming-call').style.display = 'none';
+        }, 8000);
+    }
 
-    setLoc('galeri');
+    function answerCall() {
+        alert("Arama Cevaplandı: Borçlarını öde yoksa mekanını basarız!");
+        document.getElementById('incoming-call').style.display = 'none';
+        document.getElementById('phone').classList.remove('active');
+    }
+
+    setInterval(incomingCall, 40000);
+    loop();
 </script>
 </body>
 </html>
