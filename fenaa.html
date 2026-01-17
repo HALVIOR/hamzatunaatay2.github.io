@@ -2,49 +2,101 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Galeri Baronu: Yeraltı</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Galeri Baronu: Yeraltı (FIXED)</title>
     <style>
-        :root { --neon: #00f2ff; --pink: #ff007f; --gold: #ffd700; --dark: #050505; --panel: #111; }
-        body { margin: 0; background: var(--dark); color: #fff; font-family: 'Courier New', monospace; overflow: hidden; user-select: none; }
+        :root { --neon: #00f2ff; --pink: #ff007f; --gold: #ffd700; --dark: #050505; }
+        body { margin: 0; background: var(--dark); color: #fff; font-family: 'Courier New', monospace; overflow: hidden; }
         
-        /* HUD & UI */
-        #hud { position: fixed; top: 0; width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-around; background: rgba(0,0,0,0.9); z-index: 1000; border-bottom: 2px solid var(--neon); box-shadow: 0 0 20px var(--neon); }
-        .stat { font-size: 18px; font-weight: bold; text-shadow: 0 0 5px var(--neon); cursor: pointer; }
+        /* HUD & UI - En üst katman */
+        #hud { position: fixed; top: 0; width: 100%; height: 50px; display: flex; align-items: center; justify-content: space-around; background: #000; z-index: 9999; border-bottom: 2px solid var(--neon); }
+        .stat { font-size: 16px; font-weight: bold; color: #fff; }
         .stat span { color: var(--gold); }
 
         /* ANA YAPI */
-        #game { display: grid; grid-template-columns: 320px 1fr; height: 100vh; padding-top: 60px; }
+        #game { display: grid; grid-template-columns: 300px 1fr; height: 100vh; padding-top: 50px; }
         
-        /* SOL MENÜ */
-        #sidebar { background: #0a0a0a; border-right: 1px solid #333; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .btn { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 15px; cursor: pointer; transition: 0.3s; font-family: inherit; font-weight: bold; text-align: left; }
-        .btn:hover { background: #222; border-color: var(--neon); padding-left: 20px; box-shadow: -5px 0 10px var(--neon); }
+        /* SOL MENÜ - Tıklama sorunu çözüldü (z-index arttırıldı) */
+        #sidebar { 
+            background: #0f0f0f; 
+            border-right: 1px solid #333; 
+            padding: 10px; 
+            overflow-y: auto; 
+            z-index: 5000; /* ÇOK ÖNEMLİ: Menüyü en öne aldık */
+            position: relative;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        }
+
+        /* Responsive: Mobilde menü aşağı inmesin, sabit kalsın */
+        @media (max-width: 768px) {
+            #game { grid-template-columns: 1fr; grid-template-rows: 40% 60%; }
+            #sidebar { border-right: none; border-bottom: 2px solid var(--neon); }
+        }
+
+        .btn { 
+            background: #222; 
+            border: 1px solid #555; 
+            color: #eee; 
+            padding: 12px; 
+            width: 100%; 
+            margin-bottom: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            text-align: left; 
+            transition: 0.2s;
+            position: relative;
+            z-index: 5001; /* Butonlar kesinlikle tıklanabilir olsun */
+        }
+        .btn:hover { background: #333; border-color: var(--neon); color: var(--neon); transform: translateX(5px); }
+        .btn:active { background: var(--neon); color: #000; transform: scale(0.98); }
         .btn.danger { border-color: var(--pink); color: var(--pink); }
         .btn.danger:hover { background: var(--pink); color: #fff; }
 
-        /* OYUN EKRANI */
-        #viewport { position: relative; background: #000; overflow: hidden; }
-        canvas { width: 100%; height: 100%; display: block; }
+        /* OYUN ALANI */
+        #viewport { position: relative; background: #000; overflow: hidden; width: 100%; height: 100%; }
+        canvas { width: 100%; height: 100%; display: block; outline: none; }
         
-        /* OFİS ARAYÜZÜ (Overlay) */
-        #office-layer { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
-        .dialog-box { background: #fff; color: #000; padding: 20px; border-radius: 2px; width: 80%; max-width: 600px; text-align: center; border: 4px solid var(--neon); position: relative; }
-        .dialog-box::after { content: ''; position: absolute; bottom: -20px; left: 50%; border: 10px solid transparent; border-top-color: var(--neon); transform: translateX(-50%); }
-        .action-row { margin-top: 30px; display: flex; gap: 10px; }
+        /* OFİS ARAYÜZÜ - Görünmez duvar kaldırıldı */
+        #office-layer { 
+            position: absolute; 
+            inset: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 10; 
+            pointer-events: none; /* ÖNEMLİ: Boşluklara tıklayınca arkaya geçsin */
+        }
         
-        /* GARAGE LİSTESİ */
-        .car-item { background: #151515; padding: 10px; border-left: 3px solid var(--gold); margin-bottom: 5px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .sell-btn { background: var(--gold); color: #000; border: none; padding: 2px 8px; cursor: pointer; font-weight: bold; }
+        /* İçerik kutusu tıklanabilir olsun */
+        .dialog-container {
+            pointer-events: auto; /* Kutunun içi tıklanabilir */
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border: 2px solid var(--neon);
+            border-radius: 10px;
+            text-align: center;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .action-row { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
         
-        /* NOTIFICATION */
-        #notif { position: fixed; top: 80px; right: -300px; background: var(--pink); color: #fff; padding: 15px; transition: 0.5s; z-index: 2000; font-weight: bold; box-shadow: 5px 5px 0 #fff; }
-        #notif.active { right: 20px; }
+        /* GARAJ */
+        .car-item { background: #1a1a1a; padding: 8px; border-left: 3px solid var(--gold); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .sell-btn { background: var(--gold); border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; color: #000; }
+        .sell-btn:hover { background: #fff; }
 
         /* TELEFON */
-        #phone { position: fixed; bottom: -500px; right: 20px; width: 240px; height: 450px; background: #111; border: 5px solid #333; border-radius: 20px; transition: 0.5s; z-index: 1500; padding: 15px; color: #fff; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        #phone { position: fixed; bottom: -600px; right: 20px; width: 250px; height: 400px; background: #111; border: 4px solid #444; border-radius: 15px; transition: 0.4s; z-index: 9999; padding: 15px; display: flex; flex-direction: column; }
         #phone.open { bottom: 20px; }
-        .app-icon { width: 50px; height: 50px; background: #333; border-radius: 10px; margin: 5px; display: inline-block; text-align: center; line-height: 50px; cursor: pointer; }
-        
+        .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .app { background: #333; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; font-size: 24px; }
+        .app:hover { background: #444; }
+
+        /* NOTIFICATION */
+        #notif { position: fixed; top: 60px; right: -300px; background: var(--pink); color: #fff; padding: 15px; z-index: 10000; font-weight: bold; transition: 0.3s; }
+        #notif.active { right: 20px; }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -53,117 +105,100 @@
 <div id="hud">
     <div class="stat">💵 <span id="money">0</span>₺</div>
     <div class="stat">👑 İtibar: <span id="rep">0</span></div>
-    <div class="stat">🍔 Enerji: <span id="energy">100</span>%</div>
-    <button onclick="saveGame()" style="background:transparent; border:1px solid #444; color:#666; cursor:pointer;">💾 KAYDET</button>
+    <div class="stat">⚡ Enerji: <span id="energy">100</span></div>
+    <button onclick="saveGame()" style="background:#333; color:#fff; border:1px solid #555; padding:5px 10px; cursor:pointer;">KAYDET</button>
 </div>
 
 <div id="game">
     <div id="sidebar">
-        <h3 style="color:var(--neon); text-align:center;">OFİS YÖNETİMİ</h3>
+        <h4 style="color:var(--neon); margin-top:0;">OFİS İŞLERİ</h4>
         <button class="btn" onclick="switchMode('office')">🤝 MÜŞTERİ KABUL</button>
-        <button class="btn" onclick="startDrive()">🏎️ ŞEHİR TURU (Sürüş)</button>
+        <button class="btn" onclick="startDrive()">🏎️ ŞEHİR TURU (Sür)</button>
         <button class="btn" onclick="visitImam()">🕌 CUMA SOHBETİ</button>
         <button class="btn danger" onclick="togglePhone()">📱 "ÖZEL" TELEFON</button>
         
-        <hr style="border-color:#333; width:100%">
-        <h4 style="color:var(--gold)">GALERİ GARAJI</h4>
-        <div id="garage-list">
-            <div style="color:#666; font-size:12px; padding:10px;">Garaj boş patron.</div>
-        </div>
+        <hr style="border-color:#333; margin: 15px 0;">
+        <h4 style="color:var(--gold); margin-bottom:10px;">GARAJIM</h4>
+        <div id="garage-list">Yükleniyor...</div>
     </div>
 
     <div id="viewport">
         <canvas id="stage"></canvas>
-        <div id="speedometer" style="position:absolute; bottom:20px; left:20px; font-size:40px; color:var(--neon); font-family:impact; display:none;">0 KM/H</div>
+        <div id="speedometer" style="position:absolute; bottom:20px; left:20px; font-size:30px; color:var(--neon); font-family:Arial; font-weight:bold; display:none; z-index:100;">0 KM/H</div>
 
         <div id="office-layer">
-            <div style="font-size:100px; margin-bottom:20px;">🕵️</div>
-            <div class="dialog-box" id="npc-text">
-                "Selamın aleyküm reis. Piyasa durgun ama elimde kelepir mal var."
-            </div>
-            <div class="action-row" id="trade-btns">
-                <button class="btn" onclick="processTrade('buy')">AL (Teklifi Gör)</button>
-                <button class="btn danger" onclick="processTrade('kick')">KOV GİTSİN</button>
+            <div class="dialog-container">
+                <div style="font-size:60px; margin-bottom:10px;">👤</div>
+                <div id="npc-text" style="font-size:18px; margin-bottom:15px;">"Müşteri bekleniyor..."</div>
+                <div class="action-row" id="trade-btns">
+                    </div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="notif">Bildirim Mesajı</div>
-
 <div id="phone">
-    <div style="text-align:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:10px;">
-        DOSTCELL 4.5G
+    <div style="text-align:center; color:#888; border-bottom:1px solid #333; padding-bottom:5px;">DOSTCELL</div>
+    <div class="app-grid">
+        <div class="app" onclick="notify('Aradığınız numara kullanılmamaktadır.')">📞</div>
+        <div class="app" onclick="notify('Borsa düştü reis.')">📉</div>
+        <div class="app" onclick="notify('Mesaj: Akşama eve erken gel.')">💬</div>
+        <div class="app" style="background:var(--pink)" onclick="alert('POLİS TELSİZİ: Bölgede hareketlilik var!')">🚨</div>
     </div>
-    <div style="display:flex; flex-wrap:wrap; justify-content:center;">
-        <div class="app-icon" onclick="notify('Aradığınız kişiye şu an ulaşılamıyor (Hapiste).')">📞</div>
-        <div class="app-icon" onclick="notify('Kripto borsası çökmüş reis, sonra bak.')">📈</div>
-        <div class="app-icon" onclick="notify('Yenge: Akşama ekmek al gel.')">💬</div>
-        <div class="app-icon" style="background:var(--pink)" onclick="alert('Polis Telsizi: 34. Bölgede drift ihbarı!')">🚨</div>
-    </div>
-    <div style="margin-top:20px; font-size:12px; color:#666; text-align:center;">
-        Bakiye: -25.00 TL
-    </div>
+    <button onclick="togglePhone()" style="margin-top:auto; background:#222; color:#fff; border:none; padding:10px; cursor:pointer;">KAPAT</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<div id="notif">Bildirim</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-    // --- OYUN VERİSİ ---
+    // --- OYUN MANTIĞI ---
     const CAR_MODELS = [
-        { name: "Tofaş Şahin S", min: 150000, max: 250000, speed: 0.8 },
-        { name: "BMW E30 (Çakal)", min: 400000, max: 600000, speed: 1.2 },
-        { name: "Honda S2000", min: 900000, max: 1200000, speed: 1.5 },
-        { name: "Passat (Aşiret)", min: 1500000, max: 2000000, speed: 1.1 },
-        { name: "Mercedes G63", min: 8000000, max: 12000000, speed: 1.3 }
+        { name: "Tofaş Şahin", price: 200000, speed: 0.7 },
+        { name: "BMW E30", price: 450000, speed: 1.0 },
+        { name: "Honda Civic", price: 800000, speed: 1.2 },
+        { name: "VW Passat", price: 1500000, speed: 1.1 },
+        { name: "Mercedes S", price: 5000000, speed: 1.4 }
     ];
 
-    let state = {
-        money: 500000,
-        rep: 10,
-        energy: 100,
-        garage: [],
-        day: 1
-    };
-
+    let state = { money: 500000, rep: 10, energy: 100, garage: [] };
     let currentOffer = null;
     let isDriving = false;
 
-    // --- BAŞLANGIÇ ---
+    // Başlangıç
     window.onload = function() {
-        if(localStorage.getItem('mafiaSave')) {
-            state = JSON.parse(localStorage.getItem('mafiaSave'));
-            notify("Kayıtlı oyun yüklendi patron.");
+        if(localStorage.getItem('mafiaSaveV2')) {
+            state = JSON.parse(localStorage.getItem('mafiaSaveV2'));
+            notify("Kayıt yüklendi patron.");
         }
-        updateUI();
         init3D();
+        updateUI();
         generateCustomer();
     };
 
     function saveGame() {
-        localStorage.setItem('mafiaSave', JSON.stringify(state));
+        localStorage.setItem('mafiaSaveV2', JSON.stringify(state));
         notify("Oyun kaydedildi!");
     }
 
-    // --- UI VE MANTIK ---
     function updateUI() {
         document.getElementById('money').innerText = state.money.toLocaleString('tr-TR');
         document.getElementById('rep').innerText = state.rep;
-        document.getElementById('energy').innerText = Math.floor(state.energy);
+        document.getElementById('energy').innerText = state.energy;
 
         const list = document.getElementById('garage-list');
         list.innerHTML = "";
-        if(state.garage.length === 0) list.innerHTML = "<div style='padding:10px; color:#444'>Garaj boş.</div>";
+        if(state.garage.length === 0) list.innerHTML = "<div style='color:#666; font-size:12px;'>Garaj boş.</div>";
         
-        state.garage.forEach((car, idx) => {
-            let val = Math.floor(car.boughtPrice * (1.1 + (Math.random()*0.2))); // %10-%30 kâr potansiyeli
+        state.garage.forEach((car, i) => {
+            // onclick içindeki tırnak işaretlerine dikkat
             list.innerHTML += `
             <div class="car-item">
-                <div>
-                    <div style="color:#fff; font-weight:bold;">${car.name}</div>
-                    <div style="color:#666;">Alış: ${car.boughtPrice.toLocaleString()}₺</div>
+                <div style="font-size:12px;">
+                    <div style="color:#fff">${car.name}</div>
+                    <div style="color:#888">${car.boughtPrice.toLocaleString()}₺</div>
                 </div>
-                <button class="sell-btn" onclick="sellCar(${idx})">SAT</button>
+                <button class="sell-btn" onclick="sellCar(${i})">SAT</button>
             </div>`;
         });
     }
@@ -181,25 +216,182 @@
             document.getElementById('speedometer').style.display = 'none';
             isDriving = false;
             generateCustomer();
-        } else if (mode === 'drive') {
-            if(state.garage.length === 0) {
-                notify("Araban yok ki neyi süreceksin?");
-                return;
+        } 
+    }
+
+    function startDrive() {
+        if(state.garage.length === 0) {
+            notify("Araban yok! Önce araba al.");
+            return;
+        }
+        document.getElementById('office-layer').classList.add('hidden');
+        document.getElementById('speedometer').style.display = 'block';
+        isDriving = true;
+        
+        // Arabayı sıfırla
+        playerCar.position.set(0, 0.5, 0);
+        playerCar.rotation.set(0, 0, 0);
+        speed = 0;
+        
+        // Odağı canvas'a ver ki tuşlar çalışsın
+        document.getElementById('stage').focus();
+    }
+
+    function generateCustomer() {
+        const base = CAR_MODELS[Math.floor(Math.random() * CAR_MODELS.length)];
+        // Fiyat değişkenliği
+        const price = Math.floor(base.price * (0.8 + Math.random() * 0.4));
+        
+        currentOffer = { name: base.name, price: price, data: base };
+        
+        document.getElementById('npc-text').innerText = 
+            `"Selam usta. Elimde bir ${base.name} var. ${price.toLocaleString()}₺ istiyorum. Ne dersin?"`;
+            
+        document.getElementById('trade-btns').innerHTML = `
+            <button class="btn" style="width:auto; background:var(--neon); color:#000;" onclick="trade('buy')">AL</button>
+            <button class="btn danger" style="width:auto;" onclick="trade('reject')">KOV</button>
+        `;
+    }
+
+    function trade(action) {
+        if(action === 'buy') {
+            if(state.money >= currentOffer.price) {
+                state.money -= currentOffer.price;
+                state.garage.push({
+                    name: currentOffer.name,
+                    boughtPrice: currentOffer.price,
+                    speed: currentOffer.data.speed
+                });
+                notify("Hayırlı olsun!");
+                state.rep += 5;
+            } else {
+                notify("Paran yetersiz!");
             }
-            document.getElementById('office-layer').classList.add('hidden');
-            document.getElementById('speedometer').style.display = 'block';
-            isDriving = true;
-            resetCarPosition();
+        } else {
+            notify("Müşteri gönderildi.");
+        }
+        updateUI();
+        generateCustomer();
+    }
+
+    function sellCar(index) {
+        const car = state.garage[index];
+        const sellPrice = Math.floor(car.boughtPrice * (1.1 + Math.random() * 0.2)); // Kâr marjı
+        
+        if(confirm(`${car.name} aracını ${sellPrice.toLocaleString()}₺ fiyatına satıyor musun?`)) {
+            state.money += sellPrice;
+            state.garage.splice(index, 1);
+            state.rep += 2;
+            notify("Satış başarılı! Para kasada.");
+            updateUI();
         }
     }
 
-    // --- TİCARET SİSTEMİ ---
-    function generateCustomer() {
-        const carBase = CAR_MODELS[Math.floor(Math.random() * CAR_MODELS.length)];
-        // Fiyat varyasyonu
-        const price = Math.floor(Math.random() * (carBase.max - carBase.min) + carBase.min);
+    function visitImam() {
+        state.energy = 100;
+        notify("İç huzura erdin. Enerji fullendi.");
+        updateUI();
+    }
+
+    function togglePhone() {
+        document.getElementById('phone').classList.toggle('open');
+    }
+
+    // --- THREE.JS (SÜRÜŞ) ---
+    let scene, camera, renderer, playerCar;
+    let speed = 0, angle = 0;
+    let keys = {};
+
+    function init3D() {
+        const canvas = document.getElementById('stage');
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
         
-        currentOffer = { name: carBase.name, price: price, data: carBase };
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111);
         
-        const dialogs = [
-            `"Usta ${currentOffer.
+        camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        camera.position.set(0, 5, -10);
+
+        // Işık
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(10, 20, 10);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        // Zemin
+        const grid = new THREE.GridHelper(1000, 100, 0x00f2ff, 0x222222);
+        scene.add(grid);
+
+        // Binalar
+        const geo = new THREE.BoxGeometry(1, 1, 1);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x333 });
+        for(let i=0; i<100; i++) {
+            const b = new THREE.Mesh(geo, mat);
+            b.position.set((Math.random()-0.5)*200, 0, (Math.random()-0.5)*200);
+            b.scale.set(5, Math.random()*20+5, 5);
+            b.position.y = b.scale.y / 2;
+            scene.add(b);
+        }
+
+        // Oyuncu Aracı
+        playerCar = new THREE.Mesh(
+            new THREE.BoxGeometry(2, 1, 4),
+            new THREE.MeshStandardMaterial({ color: 0xffd700 })
+        );
+        playerCar.position.y = 0.5;
+        scene.add(playerCar);
+
+        // Kontroller
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        animate();
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        if(isDriving) {
+            if(keys['w'] || keys['W']) speed += 0.01;
+            else if(keys['s'] || keys['S']) speed -= 0.01;
+            else speed *= 0.95;
+
+            speed = Math.max(Math.min(speed, 1.5), -0.5);
+
+            if(Math.abs(speed) > 0.01) {
+                if(keys['a'] || keys['A']) angle += 0.05;
+                if(keys['d'] || keys['D']) angle -= 0.05;
+            }
+
+            playerCar.rotation.y = angle;
+            playerCar.position.x += Math.sin(angle) * speed;
+            playerCar.position.z += Math.cos(angle) * speed;
+
+            // Kamera takibi
+            camera.position.x = playerCar.position.x - Math.sin(angle) * 10;
+            camera.position.z = playerCar.position.z - Math.cos(angle) * 10;
+            camera.lookAt(playerCar.position);
+
+            document.getElementById('speedometer').innerText = Math.floor(speed * 100) + " KM/H";
+        } else {
+            // Ofis modu kamerası dönsün
+            camera.position.x = Math.sin(Date.now()*0.0005) * 20;
+            camera.position.z = Math.cos(Date.now()*0.0005) * 20;
+            camera.lookAt(0,0,0);
+        }
+        
+        renderer.render(scene, camera);
+    }
+    
+    // Resize fix
+    window.addEventListener('resize', () => {
+        const c = document.getElementById('stage');
+        camera.aspect = c.clientWidth / c.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(c.clientWidth, c.clientHeight);
+    });
+
+</script>
+</body>
+</html>
