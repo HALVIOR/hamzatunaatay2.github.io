@@ -397,6 +397,23 @@ function visitMosque() {
     log("Cumaya gittin, huzur buldun. İman++ Stres--", "good");
     updateUI();
 }
+    // --- ARABA (FOTOĞRAFLI) ---
+// Not: Aşağıdaki URL'yi kendi araba resminin linkiyle değiştirebilirsin.
+// Kare veya dikdörtgen bir "texture" (doku) görseli en iyi sonucu verir.
+const carTextureUrl = 'https://th.bing.com/th/id/R.cad03b32052be58d34980d41b80fa82f?rik=DsNeJTTsT9G6bg&riu=http%3a%2f%2f4.bp.blogspot.com%2f-VSHZLPLGBe0%2fVbvd5MZawyI%2fAAAAAAAAAIs%2fDqaS_4LXUpg%2fw1200-h630-p-k-no-nu%2f1200px-Renault_12TSW_Toros_front.jpg&ehk=6ZDAjWmuRbtHno5A4cdEhHZdIYsF4WU23mI9yCznt2w%3d&risl=&pid=ImgRaw&r=0; 
+// (Şimdilik örnek olarak ahşap kutu dokusu koydum, araba yan/üst görünüşü bulursan buraya yapıştır)
+
+const carTexture = textureLoader.load(carTextureUrl);
+const carGeometry = new THREE.BoxGeometry(1.5, 0.8, 2.5); // Araba boyutunu biraz büyüttüm
+const carMaterial = new THREE.MeshStandardMaterial({ 
+    map: carTexture, // FOTOĞRAFI BURADA ATIYORUZ
+    color: 0xffffff // Resmin rengini bozmamak için beyaz taban
+});
+
+const car = new THREE.Mesh(carGeometry, carMaterial);
+car.position.y = 0.4;
+car.castShadow = true; // Gölge düşürsün
+scene.add(car);
 
 function upgradeGallery() {
     const cost = gameState.level * 1000000;
