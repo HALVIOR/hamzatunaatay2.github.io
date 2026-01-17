@@ -2,102 +2,120 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Araba Al Sat</title>
+<title>Mahalle Galerisi</title>
 <style>
-body {
-  background:#111;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-}
+body { margin:0; font-family:Arial; background:#2c2c2c; color:white; }
+header { background:#1a1a1a; padding:12px; text-align:center; }
+.main { display:grid; grid-template-columns: 260px 1fr 300px; gap:12px; padding:12px; }
 
-img {
-  width:400px;
-  border-radius:10px;
-  margin:20px;
-}
+.panel { background:#1f1f1f; border-radius:10px; padding:10px; }
+img { width:100%; border-radius:8px; }
 
-button {
-  padding:12px 20px;
-  margin:10px;
-  font-size:16px;
-  cursor:pointer;
-}
+.card { background:#2b2b2b; padding:8px; border-radius:8px; margin-bottom:10px; }
+button { padding:6px 10px; border:none; border-radius:6px; cursor:pointer; }
+.buy { background:#27ae60; }
+.sell { background:#e67e22; }
+.small { font-size:13px; color:#ccc; }
 </style>
 </head>
 
 <body>
 
-<h1 id="model">BMW 320i</h1>
-<h2>Bakiye: <span id="para">2000000</span> TL</h2>
+<header>
+  <h1>🏘️ Mahalle Oto Galerisi</h1>
+  <div>👤 Galerici Hamza | 💰 Bakiye: <b id="para"></b> TL | 📅 Gün: <b id="gun"></b></div>
+</header>
 
-<img id="arabaResim" src="https://cdn.motor1.com/images/mgl/2kq6e/s1/bmw-3-series.jpg">
+<div class="main">
 
-<br>
+<!-- KARAKTER -->
+<div class="panel">
+  <h3>👤 Sen</h3>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png">
+  <p class="small">Mahallenin en kurnaz galericisi.</p>
 
-<select id="secim" onchange="modelDegis()">
-  <option value="bmw">BMW 320i</option>
-  <option value="audi">Audi A6</option>
-  <option value="mercedes">Mercedes C200</option>
-</select>
+  <h3>📈 Piyasa</h3>
+  <p id="piyasa" class="small"></p>
+  <button onclick="yeniGun()">Yeni Gün</button>
+</div>
 
-<br>
+<!-- GALERİ -->
+<div class="panel">
+  <h3>🚗 Senin Galerin</h3>
+  <div id="garaj"></div>
+</div>
 
-<button onclick="al()">NPC'den Al (1.500.000 TL)</button>
-<button onclick="sat()">Sat (1.800.000 TL)</button>
+<!-- NPC -->
+<div class="panel">
+  <h3>🧑‍🤝‍🧑 NPC Müşteriler</h3>
+  <div id="npc"></div>
+</div>
+
+</div>
 
 <script>
-let bakiye = 2000000;
-let arabaVar = false;
+let para = 2500000;
+let gun = 1;
+let piyasaCarpani = 1;
+let garaj = [];
 
-const arabalar = {
-  bmw: {
-    isim: "BMW 320i",
-    resim: "https://cdn.motor1.com/images/mgl/2kq6e/s1/bmw-3-series.jpg"
-  },
-  audi: {
-    isim: "Audi A6",
-    resim: "https://cdn.motor1.com/images/mgl/kpK8E/s1/audi-a6.jpg"
-  },
-  mercedes: {
-    isim: "Mercedes C200",
-    resim: "https://cdn.motor1.com/images/mgl/0AN2e/s1/mercedes-c-class.jpg"
-  }
-};
+const arabalar = [
+  { ad:"BMW 320i", fiyat:1300000, img:"https://upload.wikimedia.org/wikipedia/commons/8/8e/2019_BMW_320i_M_Sport.jpg" },
+  { ad:"Audi A4", fiyat:1400000, img:"https://upload.wikimedia.org/wikipedia/commons/5/54/Audi_A4_B9_sedan.jpg" },
+  { ad:"Mercedes C200", fiyat:1550000, img:"https://upload.wikimedia.org/wikipedia/commons/1/12/Mercedes-Benz_C-Class_W206.jpg" }
+];
 
-function guncelle() {
-  document.getElementById("para").innerText = bakiye;
+const npcList = [
+  { ad:"Mehmet", img:"https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" },
+  { ad:"Ali", img:"https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" }
+];
+
+function render() {
+  document.getElementById("para").innerText = para.toLocaleString("tr-TR");
+  document.getElementById("gun").innerText = gun;
+  document.getElementById("piyasa").innerText =
+    piyasaCarpani > 1 ? "📈 Piyasa yükseliyor" : "📉 Piyasa düşüşte";
+
+  const g = document.getElementById("garaj");
+  g.innerHTML = "";
+  garaj.forEach((a,i) => {
+    g.innerHTML += `
+      <div class="card">
+        <img src="${a.img}">
+        <b>${a.ad}</b>
+        <div class="small">Fiyat: ${(a.fiyat*piyasaCarpani).toLocaleString("tr-TR")} TL</div>
+        <button class="sell" onclick="npcyeSat(${i})">NPC Satın Alsın</button>
+      </div>`;
+  });
+
+  const n = document.getElementById("npc");
+  n.innerHTML = "";
+  npcList.forEach(x => {
+    n.innerHTML += `
+      <div class="card">
+        <img src="${x.img}">
+        <b>${x.ad}</b>
+        <div class="small">Galerine bakıyor...</div>
+      </div>`;
+  });
 }
 
-function modelDegis() {
-  let secilen = document.getElementById("secim").value;
-  document.getElementById("model").innerText = arabalar[secilen].isim;
-  document.getElementById("arabaResim").src = arabalar[secilen].resim;
+function yeniGun() {
+  gun++;
+  piyasaCarpani = (Math.random()*0.4 + 0.8).toFixed(2);
+  render();
 }
 
-function al() {
-  if (arabaVar) {
-    alert("Zaten araba var!");
-    return;
-  }
-  if (bakiye < 1500000) {
-    alert("Bakiye yetersiz!");
-    return;
-  }
-  bakiye -= 1500000;
-  arabaVar = true;
-  guncelle();
+function npcyeSat(i) {
+  let kazanc = Math.floor(garaj[i].fiyat * piyasaCarpani);
+  para += kazanc;
+  garaj.splice(i,1);
+  render();
 }
 
-function sat() {
-  if (!arabaVar) {
-    alert("Araba yok!");
-    return;
-  }
-  bakiye += 1800000;
-  arabaVar = false;
-  guncelle();
-}
+// başlangıçta arabalar galeride
+garaj = [...arabalar];
+render();
 </script>
 
 </body>
