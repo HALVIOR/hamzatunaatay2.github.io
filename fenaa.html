@@ -2,158 +2,169 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Mahalle Galerisi Sim</title>
+<title>Hamza Galeri FULL SIM</title>
 <style>
-body{margin:0;font-family:Arial;background:#2b2b2b;color:#fff}
-header{background:#1a1a1a;padding:10px;text-align:center}
-.main{display:grid;grid-template-columns:260px 1fr 320px;gap:10px;padding:10px}
-.panel{background:#1f1f1f;border-radius:10px;padding:10px}
-.card{background:#2c2c2c;border-radius:8px;padding:8px;margin-bottom:8px}
-img{width:100%;border-radius:6px}
-button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;margin-top:5px}
-.buy{background:#27ae60}
+body{margin:0;background:#0e0e0e;color:#fff;font-family:Arial}
+header{background:#151515;padding:10px;text-align:center}
+nav button{margin:4px;padding:6px 10px;border:0;border-radius:6px;cursor:pointer}
+.panel{display:none;padding:10px}
+.show{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.card{background:#222;border-radius:10px;overflow:hidden}
+.card img{width:100%;height:120px;object-fit:cover}
+.c{padding:8px}
+button{width:100%;padding:6px;border:0;border-radius:6px;cursor:pointer}
+.buy{background:#2ecc71}
 .sell{background:#e67e22}
-.small{font-size:13px;color:#ccc}
-input{width:100%;padding:6px;border-radius:6px;border:none;margin-top:4px}
+.drive{background:#3498db}
+.small{font-size:12px;color:#aaa}
+
+/* sürüş */
+#driveArea{background:#111;height:300px;position:relative}
+#car{width:60px;height:30px;background:red;position:absolute;bottom:20px;left:120px;border-radius:6px}
 </style>
 </head>
-
 <body>
 
 <header>
-<h1 id="baslik">🏘️ Galeri</h1>
-<div>💰 <b id="para"></b> TL | 📅 Gün <b id="gun"></b> | ⭐ Seviye <b id="seviye"></b></div>
+<h1 id="galeriAd">Hamza Galeri</h1>
+<div>💰 Para: <b id="para"></b> TL | 📅 Gün: <b id="gun"></b></div>
+<nav>
+<button onclick="show('galeri')">🏪 Galeri</button>
+<button onclick="show('npc')">🧑 NPC</button>
+<button onclick="show('surus')">🚗 Sürüş</button>
+</nav>
 </header>
 
-<div class="main">
-
-<div class="panel">
-<h3>👤 Galerici</h3>
-<input id="galeriAdi" placeholder="Galeri adı">
-<button onclick="galeriAdiKaydet()">Kaydet</button>
-
-<h3>🗺️ Bölge</h3>
-<button onclick="bolgeDegis()">Mahalle / Sanayi</button>
-<p class="small" id="bolge"></p>
-
-<h3>📈 Piyasa</h3>
-<p class="small" id="piyasa"></p>
-<button onclick="yeniGun()">Yeni Gün</button>
-
-<h3>⬆️ Galeri Upgrade</h3>
-<button onclick="upgrade()">Upgrade (1.000.000 TL)</button>
+<div id="galeri" class="panel show">
+<h2>Garajın</h2>
+<div id="garaj" class="grid"></div>
 </div>
 
-<div class="panel">
-<h3>🚗 Senin Galerin</h3>
-<div id="garaj"></div>
+<div id="npc" class="panel">
+<h2>NPC Alanı</h2>
+<div id="npcList" class="grid"></div>
 </div>
 
-<div class="panel">
-<h3>🤝 NPC Galerisi</h3>
-<div id="npc"></div>
+<div id="surus" class="panel">
+<h2>Mini Sürüş</h2>
+<div id="driveArea">
+<div id="car"></div>
 </div>
-
+<p class="small">← → ile sür</p>
 </div>
 
 <script>
-let oyun={
- galeriAdi:"Oto Galerisi",
- para:5000000,
- gun:1,
- piyasa:1,
- seviye:1,
- bolge:"Mahalle",
- garaj:[]
+let para=300000;
+let gunler=["Pzt","Sal","Çrş","Prş","Cuma","Cts","Pazar"];
+let gun=0;
+let garaj=[];
+let seciliAraba=null;
+
+const modeller=[
+{ad:"BMW 320i",f:120000,img:"https://images.unsplash.com/photo-1549921296-3c9b4b1f87a2"},
+{ad:"Audi A4",f:130000,img:"https://images.unsplash.com/photo-1542362567-b07e54358753"},
+{ad:"C200",f:150000,img:"https://images.unsplash.com/photo-1541899481282-d53bffe3c35d"},
+{ad:"Golf",f:90000,img:"https://images.unsplash.com/photo-1552519507-da3b142c6e3d"},
+{ad:"Supra",f:200000,img:"https://images.unsplash.com/photo-1549924231-f129b911e442"},
+{ad:"Mustang",f:230000,img:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8"}
+];
+
+let npcCars=[];
+
+function show(id){
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
+document.getElementById(id).classList.add('show');
+}
+
+document.getElementById("galeriAd").onclick=()=>{
+const a=prompt("Galeri adı:");
+if(a) document.getElementById("galeriAd").innerText=a;
 };
 
-const arabalar={
- Mahalle:[
-  {ad:"BMW 320i",f:1200000,img:"https://raw.githubusercontent.com/github/explore/main/topics/html/html.png"},
-  {ad:"Audi A4",f:1300000,img:"https://raw.githubusercontent.com/github/explore/main/topics/html/html.png"}
- ],
- Sanayi:[
-  {ad:"Mercedes C200",f:1600000,img:"https://raw.githubusercontent.com/github/explore/main/topics/html/html.png"},
-  {ad:"BMW M4",f:2800000,img:"https://raw.githubusercontent.com/github/explore/main/topics/html/html.png"}
- ]
-};
-
-function kaydet(){localStorage.setItem("galeri",JSON.stringify(oyun))}
-function yukle(){
- let d=localStorage.getItem("galeri");
- if(d)oyun=JSON.parse(d);
- if(oyun.garaj.length==0)oyun.garaj=[...arabalar.Mahalle];
+function yeniNPC(){
+npcCars=[];
+for(let i=0;i<4;i++){
+let m={...modeller[Math.floor(Math.random()*modeller.length)]};
+m.hasar=Math.floor(Math.random()*31);
+npcCars.push(m);
+}
 }
 
 function render(){
- document.getElementById("baslik").innerText="🏘️ "+oyun.galeriAdi;
- document.getElementById("para").innerText=oyun.para.toLocaleString("tr-TR");
- document.getElementById("gun").innerText=oyun.gun;
- document.getElementById("seviye").innerText=oyun.seviye;
- document.getElementById("bolge").innerText=oyun.bolge;
- document.getElementById("piyasa").innerText=oyun.piyasa>1?"📈 Yükseliş":"📉 Düşüş";
+document.getElementById("para").innerText=para.toLocaleString("tr-TR");
+document.getElementById("gun").innerText=gunler[gun];
 
- let g=document.getElementById("garaj"); g.innerHTML="";
- oyun.garaj.forEach((a,i)=>{
-  g.innerHTML+=`
-   <div class="card">
-    <b>${a.ad}</b>
-    <div class="small">Fiyat ${(a.f*oyun.piyasa).toLocaleString("tr-TR")} TL</div>
-    <button class="sell" onclick="sat(${i})">NPC’ye Sat</button>
-   </div>`;
- });
+const g=document.getElementById("garaj");
+g.innerHTML="";
+garaj.forEach((a,i)=>{
+let sat=Math.floor(a.f*(1-a.hasar/100)*1.25);
+g.innerHTML+=`
+<div class="card">
+<img src="${a.img}">
+<div class="c">
+<b>${a.ad}</b>
+<div class="small">Hasar: %${a.hasar}</div>
+<div class="small">Satış: ${sat} TL</div>
+<button class="sell" onclick="sat(${i},${sat})">Sat</button>
+<button class="drive" onclick="sec(${i})">Sür</button>
+</div></div>`;
+});
 
- let n=document.getElementById("npc"); n.innerHTML="";
- arabalar[oyun.bolge].forEach(a=>{
-  n.innerHTML+=`
-   <div class="card">
-    <b>${a.ad}</b>
-    <div class="small">NPC Fiyat ${a.f.toLocaleString("tr-TR")} TL</div>
-    <button class="buy" onclick="al(${a.f},'${a.ad}')">NPC’den Al</button>
-   </div>`;
- });
+const n=document.getElementById("npcList");
+n.innerHTML="";
+npcCars.forEach((a,i)=>{
+let fiyat=Math.floor(a.f*(0.9+Math.random()*0.2));
+n.innerHTML+=`
+<div class="card">
+<img src="${a.img}">
+<div class="c">
+<b>${a.ad}</b>
+<div class="small">Hasar: %${a.hasar}</div>
+<div class="small">Fiyat: ${fiyat}</div>
+<button class="buy" onclick="al(${i},${fiyat})">Al</button>
+</div></div>`;
+});
 }
 
-function al(f,ad){
- if(oyun.para<f)return alert("Para yok");
- oyun.para-=f;
- oyun.garaj.push({ad:ad,f:f});
- kaydet(); render();
+function al(i,f){
+let indirim=Math.random()<0.3 ? 0.9:1;
+f=Math.floor(f*indirim);
+if(para<f){alert("Para yok");return;}
+para-=f;
+garaj.push(npcCars[i]);
+npcCars.splice(i,1);
+if(npcCars.length<2) yeniNPC();
+render();
 }
 
-function sat(i){
- let pazarlik=(Math.random()*0.2-0.1);
- let kazanc=Math.floor(oyun.garaj[i].f*oyun.piyasa*(1+pazarlik));
- oyun.para+=kazanc;
- oyun.garaj.splice(i,1);
- kaydet(); render();
+function sat(i,f){
+let bonus=Math.random()<0.25 ? 1.1:1;
+para+=Math.floor(f*bonus);
+garaj.splice(i,1);
+gun=(gun+1)%7;
+if(gunler[gun]=="Pazar"){ alert("💸 Vergi ödedin"); para-=20000;}
+if(Math.random()<0.15) alert("🚓 Polis kontrolü, sorun yok");
+render();
 }
 
-function yeniGun(){
- oyun.gun++;
- oyun.piyasa=(Math.random()*0.4+0.8).toFixed(2);
- kaydet(); render();
+function sec(i){
+seciliAraba=garaj[i];
+show('surus');
 }
 
-function upgrade(){
- if(oyun.para<1000000)return alert("Para yok");
- oyun.para-=1000000;
- oyun.seviye++;
- kaydet(); render();
-}
+let car=document.getElementById("car");
+let x=120;
+document.addEventListener("keydown",e=>{
+if(!seciliAraba) return;
+if(e.key=="ArrowLeft") x-=10;
+if(e.key=="ArrowRight") x+=10;
+x=Math.max(0,Math.min(240,x));
+car.style.left=x+"px";
+});
 
-function bolgeDegis(){
- oyun.bolge=oyun.bolge=="Mahalle"?"Sanayi":"Mahalle";
- kaydet(); render();
-}
-
-function galeriAdiKaydet(){
- let v=document.getElementById("galeriAdi").value.trim();
- if(v){oyun.galeriAdi=v; kaydet(); render();}
-}
-
-yukle(); render();
+yeniNPC();
+render();
 </script>
-
 </body>
 </html>
