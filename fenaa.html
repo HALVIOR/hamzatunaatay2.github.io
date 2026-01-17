@@ -2,89 +2,104 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Galeri Tycoon: Sanayi & Mafya</title>
+<title>Galeri Tycoon: Full Simülasyon</title>
 <style>
-    body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-    #ui { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
-    .panel { pointer-events: auto; background: rgba(15,15,15,0.95); border: 1px solid #444; border-radius: 12px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    :root { --bg: #0a0a0a; --gold: #ffd700; --red: #ff4d4d; --green: #2ecc71; --blue: #3498db; }
+    body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
     
+    #ui { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+    .panel { pointer-events: auto; background: rgba(20,20,20,0.9); border: 1px solid #333; border-radius: 12px; padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
+
     /* ÜST PANEL */
-    .top-bar { display: flex; gap: 15px; justify-content: center; align-self: center; }
-    .bar-container { width: 100px; height: 10px; background: #222; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-    .bar-fill { height: 100%; transition: 0.3s; }
+    .status-bar { display: flex; gap: 20px; justify-content: space-between; align-items: center; }
+    .bar-wrap { width: 100px; height: 12px; background: #222; border-radius: 6px; overflow: hidden; border: 1px solid #444; }
+    .bar-fill { height: 100%; transition: 0.5s; width: 50%; }
 
-    /* BÖLGE NAVIGATION */
-    .nav-panel { position: absolute; left: 20px; top: 150px; display: flex; flex-direction: column; gap: 10px; }
-    .nav-btn { background: #34495e; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; text-align: left; }
-    .nav-btn.active { background: #e67e22; }
-
-    /* KONTROLLER */
-    .bottom-ui { display: flex; justify-content: space-between; align-items: flex-end; }
-    .car-card { width: 300px; text-align: center; }
-    .npc-dialog { width: 350px; border-left: 4px solid #e67e22; }
-
-    button { width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
-    button:hover { filter: brightness(1.2); transform: translateY(-2px); }
-    .btn-buy { background: #27ae60; }
-    .btn-sell { background: #2980b9; }
-    .btn-action { background: #8e44ad; }
+    /* ANA OYUN ALANI */
+    .game-layout { display: flex; justify-content: space-between; height: 75%; margin-top: 20px; }
     
-    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 100; align-items: center; justify-content: center; pointer-events: auto; }
+    /* SOL: HARİTA/BÖLGE SEÇİMİ */
+    .map-nav { width: 220px; display: flex; flex-direction: column; gap: 10px; }
+    .nav-item { padding: 15px; border-radius: 8px; background: #1a1a1a; cursor: pointer; text-align: center; border: 1px solid #333; transition: 0.3s; }
+    .nav-item:hover { border-color: var(--blue); background: #252525; }
+    .nav-item.active { background: var(--blue); border-color: #fff; }
+
+    /* ORTA: ETKİLEŞİM ALANI */
+    .action-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .npc-box { font-size: 5em; margin-bottom: 10px; animation: float 3s infinite ease-in-out; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+    /* SAĞ: GÜNCEL ARABA VE KONTROLLER */
+    .car-info { width: 280px; }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
+    .btn-green { background: var(--green); }
+    .btn-blue { background: var(--blue); }
+    .btn-red { background: var(--red); }
+    .btn-gold { background: var(--gold); color: #000; }
+
+    input#galName { background: none; border: 1px dashed #555; color: var(--gold); text-align: center; font-size: 1.2em; width: 100%; margin-bottom: 10px; }
+    
+    #msg { position: fixed; top: 20%; left: 50%; transform: translate(-50%, -50%); background: var(--red); padding: 20px; border-radius: 10px; display: none; z-index: 1000; }
 </style>
 </head>
 <body>
 
-<div id="overlay">
-    <div class="panel" id="modal-content" style="max-width: 400px; text-align: center;"></div>
-</div>
+<div id="msg"></div>
 
 <div id="ui">
-    <div class="panel top-bar">
-        <div style="text-align:center">💰 <span id="val-money" style="color:#2ecc71">₺300k</span></div>
-        <div>🍕 Açlık <div class="bar-container"><div id="bar-hunger" class="bar-fill" style="background: #e74c3c; width: 20%"></div></div></div>
-        <div>🧘 Stres <div class="bar-container"><div id="bar-stress" class="bar-fill" style="background: #9b59b6; width: 10%"></div></div></div>
-        <div>🕌 İman <div class="bar-container"><div id="bar-faith" class="bar-fill" style="background: #f1c40f; width: 50%"></div></div></div>
-        <div style="color:#3498db">📅 <span id="val-day">Pazartesi</span></div>
+    <div class="panel status-bar">
+        <div style="color:var(--gold); font-weight:bold; font-size: 1.2em;">💰 <span id="m-val">300.000</span></div>
+        <div>🍕 Açlık <div class="bar-wrap"><div id="b-hunger" class="bar-fill" style="background:var(--red)"></div></div></div>
+        <div>🧘 Stres <div class="bar-wrap"><div id="b-stress" class="bar-fill" style="background:var(--gold)"></div></div></div>
+        <div>🕌 İman <div class="bar-wrap"><div id="b-faith" class="bar-fill" style="background:var(--green)"></div></div></div>
+        <div style="color:var(--blue)">📅 <span id="d-val">Pzt</span></div>
     </div>
 
-    <div class="nav-panel">
-        <button class="nav-btn active" onclick="changeLoc('galeri')">🏢 Galeri</button>
-        <button class="nav-btn" onclick="changeLoc('sanayi')">🔧 Sanayi Sitesi</button>
-        <button class="nav-btn" onclick="changeLoc('mahalle')">🏠 Mahalle / Cami</button>
-    </div>
-
-    <div class="bottom-ui">
-        <div class="panel npc-dialog" id="npc-panel">
-            <h4 id="npc-name" style="margin:0; color:#e67e22">NPC: Galericiler Kralı</h4>
-            <p id="npc-text" style="font-size:0.9em">"Hoşgeldin evlat, bugün ne alıp satıyoruz?"</p>
-            <div id="pazarlik-box" style="display:none">
-                <button class="btn-buy" onclick="pazarlikYap()">🤝 Pazarlık Et</button>
-                <button class="btn-sell" onclick="anlasmayiBitir()">✅ El Sıkış</button>
-            </div>
+    <div class="game-layout">
+        <div class="map-nav">
+            <div class="nav-item active" id="nav-galeri" onclick="go('galeri')">🏢 Galeri Merkez</div>
+            <div class="nav-item" id="nav-mahalle" onclick="go('mahalle')">🏘️ Mahalle (Cami/Market)</div>
+            <div class="nav-item" id="nav-sanayi" onclick="go('sanayi')">🔧 Sanayi Sitesi</div>
+            <div class="nav-item" id="nav-tefeci" onclick="go('tefeci')">💀 Tefeci Mekanı</div>
+            <button class="btn btn-red" onclick="nextDay()" style="margin-top:auto">🌙 Günü Bitir</button>
         </div>
 
-        <div class="panel car-card">
-            <input type="text" id="gal-name" value="TUNA GALERİ" style="background:none; border:none; color:gold; font-weight:bold; width:100%; text-align:center; font-size:1.2em">
-            <div id="car-view" style="font-size:4em; margin:10px 0">🏢</div>
-            <h3 id="car-title">Araç Yok</h3>
-            <p id="car-price" style="color:#aaa">Pazar Fiyatı: -</p>
-            <button class="btn-buy" id="btn-buy-trigger" onclick="pazarAra()">🚗 Araba Ara</button>
-            <button class="btn-sell" id="btn-sell-trigger" style="display:none" onclick="satisBaslat()">💰 Müşteri Bul</button>
+        <div class="action-center">
+            <div id="npc-avatar" class="npc-box">🤵</div>
+            <h2 id="npc-title" style="margin:5px 0">Hoşgeldin Kral</h2>
+            <p id="npc-speech" style="max-width: 400px; font-style: italic;">"Bugün galeri için güzel bir gün!"</p>
+            
+            <div id="action-btns" style="pointer-events: auto; width: 300px;">
+                </div>
+        </div>
+
+        <div class="panel car-info">
+            <input type="text" id="galName" value="TUNA GALERİ">
+            <div id="car-preview" style="height: 150px; border: 1px solid #333; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 4em;">🏢</div>
+            <h3 id="car-name" style="text-align:center; margin:0">Araç Yok</h3>
+            <p id="car-stat" style="text-align:center; color:#888; font-size:0.9em">Piyasa: -</p>
+            <div id="car-ctrl" style="pointer-events: auto;">
+                 <button class="btn btn-blue" id="main-act-btn" onclick="pazarAra()">🚗 Araba Ara</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// OYUN VERİLERİ
-const cars = [
-    {n:"Tofaş Şahin", p:250000, c:0xffffff}, {n:"Doğan SLX", p:320000, c:0xaaaaaa}, {n:"BMW M3", p:4500000, c:0x0000ff},
-    {n:"Mercedes G63", p:15000000, c:0x222222}, {n:"Ferrari F40", p:45000000, c:0xff0000}
+// --- OYUN VERİSİ ---
+const carModels = [
+    {n:"Tofaş Şahin", p:250000, c:0xffffff, icon:"🚗"}, {n:"Toros", p:180000, c:0xdddddd, icon:"🚙"},
+    {n:"BMW M4", p:5500000, c:0x0000ff, icon:"🏎️"}, {n:"Mercedes G63", p:15000000, c:0x222222, icon:"🚜"},
+    {n:"Bugatti", p:90000000, c:0x0000bb, icon:"🚀"}
 ];
-const npcs = ["Emlakçı Hayri", "Hacı Abi", "Tefeci Remzi", "Sanayi ustası Nuri", "Galerici Mahmut"];
-let state = { money: 300000, hunger: 20, stress: 10, faith: 50, day: 0, loc: 'galeri', car: null, npcPrice: 0 };
 
-// 3D SAHNE
+let state = {
+    money: 300000, hunger: 20, stress: 10, faith: 50, day: 0,
+    loc: 'galeri', car: null, npcPrice: 0, tempCar: null
+};
+
+// --- THREE.JS (GELİŞMİŞ ARABA MODELİ) ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
@@ -92,93 +107,135 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const carGroup = new THREE.Group();
-const body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.6, 4), new THREE.MeshStandardMaterial({color: 0xffffff}));
-const roof = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2), new THREE.MeshStandardMaterial({color: 0xffffff}));
-roof.position.y = 0.5;
-carGroup.add(body, roof); scene.add(carGroup);
-scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-const light = new THREE.PointLight(0xffffff, 1); light.position.set(10,10,10); scene.add(light);
-camera.position.set(5, 3, 5); camera.lookAt(0,0,0);
-
-function updateUI() {
-    document.getElementById("val-money").innerText = "₺" + Math.floor(state.money/1000) + "k";
-    document.getElementById("bar-hunger").style.width = state.hunger + "%";
-    document.getElementById("bar-stress").style.width = state.stress + "%";
-    document.getElementById("bar-faith").style.width = state.faith + "%";
-    document.getElementById("val-day").innerText = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"][state.day];
-
-    if(state.car) {
-        document.getElementById("car-title").innerText = state.car.n;
-        document.getElementById("car-view").innerText = "🚗";
-        document.getElementById("car-price").innerText = "Piyasa: ₺" + (state.car.p/1000) + "k";
-        document.getElementById("btn-buy-trigger").style.display = "none";
-        document.getElementById("btn-sell-trigger").style.display = "block";
-        body.material.color.setHex(state.car.c); roof.material.color.setHex(state.car.c);
-        carGroup.visible = true;
-    } else {
-        document.getElementById("car-title").innerText = "Araç Yok";
-        document.getElementById("car-view").innerText = state.loc === 'galeri' ? "🏢" : state.loc === 'sanayi' ? "🔧" : "🕌";
-        document.getElementById("btn-buy-trigger").style.display = "block";
-        document.getElementById("btn-sell-trigger").style.display = "none";
-        carGroup.visible = false;
-    }
+const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 4.5), new THREE.MeshStandardMaterial({color: 0xffffff}));
+const top = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 2.2), new THREE.MeshStandardMaterial({color: 0xffffff}));
+top.position.y = 0.6; top.position.z = -0.3;
+const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+const wheelMat = new THREE.MeshStandardMaterial({color: 0x111111});
+for(let x=-1; x<=1; x+=2) for(let z=-1.5; z<=1.5; z+=3) {
+    let w = new THREE.Mesh(wheelGeo, wheelMat);
+    w.rotation.z = Math.PI/2; w.position.set(x*1.1, -0.3, z);
+    carGroup.add(w);
 }
+carGroup.add(body, top); scene.add(carGroup);
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const light = new THREE.DirectionalLight(0xffffff, 1); light.position.set(5,10,5); scene.add(light);
+camera.position.set(6, 4, 8); camera.lookAt(0,0,0);
 
-function changeLoc(l) {
-    state.loc = l;
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+// --- OYUN FONKSİYONLARI ---
+
+function go(target) {
+    state.loc = target;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('nav-' + target).classList.add('active');
     
-    if(l === 'mahalle') {
-        showModal("MAHALLE", "<button onclick='pray()'>🕌 Namaz Kıl (İman +30)</button><button onclick='eat()'>🛒 Yemek Ye (-₺2k)</button>");
-    } else if(l === 'sanayi' && state.car) {
-        showModal("SANAYİ", "<button onclick='modifiye()'>🛠️ Modifiye Et (Fiyat Artar - ₺50k)</button>");
+    const btns = document.getElementById('action-btns');
+    btns.innerHTML = "";
+    
+    if(target === 'galeri') {
+        setNPC("🤵", "Galerici Mahmut", "Piyasa bugünlerde çok hareketli!");
+    } else if(target === 'mahalle') {
+        setNPC("👳", "Hacı Abi", "Selamun aleyküm evlat, huzur burada.");
+        btns.innerHTML = `<button class="btn btn-green" onclick="pray()">🕌 Namaz Kıl (İman +30)</button>
+                          <button class="btn btn-gold" onclick="eat()">🛒 Marketten Doy (-₺2k)</button>`;
+    } else if(target === 'sanayi') {
+        setNPC("👨‍🔧", "Usta Nuri", "Getir arabayı da bir ayar çekelim.");
+        if(state.car) btns.innerHTML = `<button class="btn btn-blue" onclick="modify()">🛠️ Modifiye Yap (-₺100k)</button>`;
+    } else if(target === 'tefeci') {
+        setNPC("🕶️", "Tefeci Remzi", "Para lazım mı koçum? Ama vaktinde öde!");
+        btns.innerHTML = `<button class="btn btn-red" onclick="kredi()">💰 ₺200k Kredi Çek</button>`;
     }
     updateUI();
 }
 
-function pazarAra() {
-    let car = cars[Math.floor(Math.random()*cars.length)];
-    state.npcPrice = Math.floor(car.p * (0.9 + Math.random() * 0.2));
-    document.getElementById("npc-name").innerText = npcs[Math.floor(Math.random()*npcs.length)];
-    document.getElementById("npc-text").innerText = `"Selam, elimde temiz bir ${car.n} var. ₺${(state.npcPrice/1000)}k olur."`;
-    document.getElementById("pazarlik-box").style.display = "block";
-    state.tempCar = car;
+function setNPC(icon, name, speech) {
+    document.getElementById('npc-avatar').innerText = icon;
+    document.getElementById('npc-title').innerText = name;
+    document.getElementById('npc-speech').innerText = `"${speech}"`;
 }
 
-function pazarlikYap() {
-    if(state.stress > 80) { showAlert("Çok streslisin, pazarlık yapamıyorsun!"); return; }
-    let chance = (state.faith / 100) + 0.2;
-    if(Math.random() < chance) {
-        state.npcPrice -= 20000;
-        document.getElementById("npc-text").innerText = `"Tamam kırmayayım seni, ₺${(state.npcPrice/1000)}k olsun."`;
+function updateUI() {
+    document.getElementById('m-val').innerText = state.money.toLocaleString();
+    document.getElementById('b-hunger').style.width = state.hunger + "%";
+    document.getElementById('b-stress').style.width = state.stress + "%";
+    document.getElementById('b-faith').style.width = state.faith + "%";
+    document.getElementById('d-val').innerText = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"][state.day];
+
+    if(state.car) {
+        document.getElementById('car-preview').innerText = state.car.icon;
+        document.getElementById('car-name').innerText = state.car.n;
+        document.getElementById('car-stat').innerText = "Değer: ₺" + (state.car.p).toLocaleString();
+        document.getElementById('main-act-btn').innerText = "💰 Müşteri Ara";
+        document.getElementById('main-act-btn').onclick = satisBaslat;
+        body.material.color.setHex(state.car.c); top.material.color.setHex(state.car.c);
+        carGroup.visible = true;
     } else {
-        state.stress += 10;
-        document.getElementById("npc-text").innerText = `"Yoo, bu fiyatın altına inmem!"`;
+        document.getElementById('car-preview').innerText = "🏢";
+        document.getElementById('car-name').innerText = "Araç Yok";
+        document.getElementById('main-act-btn').innerText = "🚗 Araba Ara";
+        document.getElementById('main-act-btn').onclick = pazarAra;
+        carGroup.visible = false;
     }
 }
 
-function anlasmayiBitir() {
+function pazarAra() {
+    if(state.loc !== 'galeri') { alert("Araba bakmak için Galeriye gitmelisin!"); return; }
+    let car = carModels[Math.floor(Math.random()*carModels.length)];
+    state.tempCar = car;
+    state.npcPrice = Math.floor(car.p * (0.9 + Math.random() * 0.3));
+    setNPC("👤", "Satıcı", `Bu ${car.n} için ₺${state.npcPrice.toLocaleString()} istiyorum. Ne dersin?`);
+    document.getElementById('action-btns').innerHTML = `
+        <button class="btn btn-green" onclick="buyConfirm()">✅ Satın Al</button>
+        <button class="btn btn-blue" onclick="negotiate(true)">🤝 Pazarlık Yap</button>
+    `;
+}
+
+function negotiate(buyMode) {
+    if(state.faith > 70) {
+        state.npcPrice = Math.floor(state.npcPrice * 0.9);
+        setNPC("👤", "Satıcı", `Güzel konuştun, ₺${state.npcPrice.toLocaleString()} olsun o zaman.`);
+    } else {
+        state.stress += 10;
+        setNPC("👤", "Satıcı", "Nuh diyorum peygamber demiyorum, son fiyat!");
+    }
+}
+
+function buyConfirm() {
     if(state.money >= state.npcPrice) {
         state.money -= state.npcPrice;
         state.car = state.tempCar;
-        document.getElementById("pazarlik-box").style.display = "none";
-        showAlert("Hayırlı olsun, arabayı aldın!");
-        updateUI();
-    } else showAlert("Para çıkışmıyor!");
+        state.tempCar = null;
+        go('galeri');
+    } else alert("Para yetmiyor!");
 }
 
-function pray() { state.faith = Math.min(100, state.faith + 30); state.stress = Math.max(0, state.stress - 20); closeModal(); updateUI(); }
-function eat() { if(state.money >= 2000) { state.money -= 2000; state.hunger = 0; } closeModal(); updateUI(); }
-function modifiye() { if(state.money >= 50000) { state.money -= 50000; state.car.p += 150000; showAlert("Araba fena oldu!"); } closeModal(); updateUI(); }
-
-function showModal(t, c) {
-    const m = document.getElementById("overlay");
-    document.getElementById("modal-content").innerHTML = `<h2>${t}</h2>${c}<br><button onclick="closeModal()">Kapat</button>`;
-    m.style.display = "flex";
+function satisBaslat() {
+    let customerPrice = Math.floor(state.car.p * (0.8 + Math.random() * 0.5));
+    state.npcPrice = customerPrice;
+    setNPC("🤵", "Müşteri", `Arabanıza ₺${customerPrice.toLocaleString()} veririm. Satar mısınız?`);
+    document.getElementById('action-btns').innerHTML = `
+        <button class="btn btn-green" onclick="sellConfirm()">🤝 Satıyorum</button>
+        <button class="btn btn-blue" onclick="negotiate(false)">💹 Fiyat Arttır</button>
+    `;
 }
-function closeModal() { document.getElementById("overlay").style.display = "none"; }
-function showAlert(t) { alert(t); }
+
+function sellConfirm() {
+    state.money += state.npcPrice;
+    state.car = null;
+    go('galeri');
+}
+
+function pray() { state.faith = 100; state.stress = 0; alert("Huzur doldu için..."); updateUI(); }
+function eat() { state.money -= 2000; state.hunger = 0; updateUI(); }
+function modify() { state.money -= 100000; state.car.p += 250000; alert("Usta canavar yaptı!"); updateUI(); }
+function kredi() { state.money += 200000; alert("Tefeci: Gözüm üzerinde..."); updateUI(); }
+
+function nextDay() {
+    state.day++; if(state.day > 6) state.day = 0;
+    state.hunger += 20;
+    if(state.day === 6) { state.money = Math.floor(state.money * 0.85); alert("Pazar vergisi kesildi!"); }
+    go('galeri');
+}
 
 function animate() { requestAnimationFrame(animate); carGroup.rotation.y += 0.01; renderer.render(scene, camera); }
 animate();
