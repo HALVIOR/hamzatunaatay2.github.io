@@ -2,235 +2,144 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>BARON LIFE: PIYASA & LOVE</title>
+    <title>BARON V3: UNITY'I BEKLERKEN</title>
     <style>
-        body { background-color: #050505; color: #d4af37; font-family: 'Courier New', monospace; display: flex; height: 100vh; margin: 0; overflow: hidden; }
+        body { background: #050505; color: gold; font-family: 'Arial Black', sans-serif; margin: 0; overflow: hidden; display: flex; }
         
-        /* SOL MENÜ */
-        #menu { width: 200px; background: #111; border-right: 2px solid #d4af37; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .menu-btn { padding: 15px; background: #222; color: #d4af37; border: 1px solid #d4af37; cursor: pointer; font-weight: bold; text-align: left; }
-        .menu-btn:hover { background: #d4af37; color: black; }
-        .active { background: #d4af37; color: black; }
+        /* SOL PANEL: BARON STATS */
+        #side-panel { width: 250px; background: #111; border-right: 3px solid #d4af37; padding: 20px; height: 100vh; box-sizing: border-box; }
+        .stat { background: #222; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #333; }
+        .label { font-size: 12px; color: #888; }
+        .value { font-size: 18px; color: #fff; }
 
-        /* ORTA EKRAN */
-        #screen { flex: 1; padding: 20px; display: flex; flex-direction: column; position: relative; background: radial-gradient(circle, #1a1a1a 0%, #000000 100%); }
+        /* ORTA PANEL: OYUN ALANI */
+        #game-window { flex: 1; position: relative; display: flex; flex-direction: column; }
         
+        /* ARABA PİYASA ALANI */
+        #road { height: 250px; background: #222; position: relative; border-bottom: 5px solid #444; overflow: hidden; }
+        #car { font-size: 50px; position: absolute; bottom: 50px; left: 50px; transition: 0.1s linear; }
+        #speedo { position: absolute; top: 10px; right: 20px; color: red; font-size: 30px; }
+
         /* CHAT EKRANI */
-        #chat-box { flex: 1; overflow-y: auto; border: 1px solid #333; padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.5); }
-        .msg { margin-bottom: 8px; padding: 5px; border-radius: 5px; }
-        .selin { color: #ff69b4; text-shadow: 0 0 5px #ff69b4; }
+        #chat-screen { flex: 1; background: rgba(0,0,0,0.8); padding: 20px; overflow-y: auto; border: 2px solid #222; margin: 10px; border-radius: 10px; }
+        .msg { margin-bottom: 10px; border-bottom: 1px solid #111; padding-bottom: 5px; }
+        .selin { color: #ff69b4; }
         .sen { color: #00bfff; }
-        .sistem { color: #888; font-style: italic; font-size: 0.9em; }
 
-        /* INPUT ALANI */
-        #input-area { display: flex; gap: 10px; }
-        input { flex: 1; padding: 15px; background: #222; border: 1px solid #444; color: white; font-size: 16px; }
-        button { padding: 15px 30px; background: #800000; color: white; border: none; font-weight: bold; cursor: pointer; }
-
-        /* ARABA MODU */
-        #car-panel { display: none; text-align: center; margin-top: 50px; }
-        .hiz-gosterge { font-size: 60px; color: red; font-weight: bold; font-family: sans-serif; }
-        .yol { width: 100%; height: 100px; background: #333; margin-top: 20px; position: relative; overflow: hidden; border-top: 2px dashed white; border-bottom: 2px dashed white; }
-        .araba { font-size: 40px; position: absolute; left: 10%; top: 20px; transition: left 0.5s; }
-        
-        /* YATAK ODASI MODU */
-        #bedroom-panel { display: none; text-align: center; }
-        .zevk-bar-container { width: 80%; height: 30px; background: #333; margin: 20px auto; border-radius: 15px; overflow: hidden; border: 1px solid #ff69b4; }
-        .zevk-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #ff69b4, #ff0000); transition: width 0.3s; }
-        .bedroom-btns button { margin: 10px; padding: 15px 40px; font-size: 18px; background: #222; border: 1px solid #ff69b4; color: #ff69b4; }
-        .bedroom-btns button:hover { background: #ff69b4; color: white; }
-
-        /* GÖRSEL EFEKTLER */
-        .shake { animation: shake 0.5s; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, -1px); } }
+        /* INPUT */
+        #input-area { padding: 20px; display: flex; gap: 10px; background: #111; }
+        input { flex: 1; padding: 15px; background: #000; border: 1px solid gold; color: white; border-radius: 5px; }
+        button { padding: 15px 25px; background: gold; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<div id="menu">
-    <h2 style="text-align:center;">BARON V2</h2>
-    <div class="menu-btn active" onclick="ekranDegistir('chat')">💬 MESAJLAR</div>
-    <div class="menu-btn" onclick="ekranDegistir('car')">🏎️ PİYASA YAP</div>
-    <div class="menu-btn" onclick="ekranDegistir('bedroom')">💋 YATAK ODASI</div>
-    <div style="margin-top:auto; font-size:12px; color:#555;">Kasa: <span id="para">500.000</span>$</div>
+<div id="side-panel">
+    <h1 style="font-size: 20px;">BARON OPS</h1>
+    <div class="stat"><div class="label">NAKİT</div><div class="value" id="para">1.250.000$</div></div>
+    <div class="stat"><div class="label">SAMİMİYET (SELİN)</div><div class="value" id="samimiyet">0%</div></div>
+    <div class="stat"><div class="label">ARAÇ</div><div class="value">MERCEDES G63</div></div>
+    <p style="font-size: 10px; color: #555;">KONTROLLER: <br> W: Gazla | S: Fren | A-D: Direksiyon</p>
 </div>
 
-<div id="screen">
-    
-    <div id="chat-panel" style="display: flex; flex-direction: column; height: 100%;">
-        <div id="chat-box">
-            <div class="msg sistem">Sistem: Selin çevrimiçi. Araban garajda hazır.</div>
-        </div>
-        <div id="input-area">
-            <input type="text" id="mesajInput" placeholder="Selin'e yaz..." autofocus>
-            <button onclick="mesajGonder()">GÖNDER</button>
-        </div>
+<div id="game-window">
+    <div id="road">
+        <div id="speedo"><span id="kmh">0</span> KM/H</div>
+        <div id="car">🏎️</div>
     </div>
 
-    <div id="car-panel">
-        <h2>ŞEHİR TURU</h2>
-        <div class="hiz-gosterge"><span id="hiz">0</span> KM/H</div>
-        <div class="yol">
-            <div class="araba" id="araba">🏎️</div>
-        </div>
-        <p id="yol-durumu" style="color: cyan; margin-top: 20px;">Motor rölantide...</p>
-        <button onclick="gazla()" style="background: green; margin-top:20px;">GAZLA</button>
-        <button onclick="fren()" style="background: red;">FREN</button>
+    <div id="chat-screen">
+        <div class="msg selin">Selin: "Unity inene kadar boş durmayalım Baronum... Şehir turuna ne dersin?"</div>
     </div>
 
-    <div id="bedroom-panel">
-        <h2 style="color: #ff69b4;">YATAK ODASI</h2>
-        <p id="selin-durum" style="font-style: italic; font-size: 18px;">Selin yatakta seni bekliyor...</p>
-        
-        <div class="zevk-bar-container">
-            <div class="zevk-bar" id="zevkBar"></div>
-        </div>
-        <p>ZEVK SEVİYESİ: %<span id="zevkYuzde">0</span></p>
-
-        <div class="bedroom-btns">
-            <button onclick="dokun('op')">💋 ÖP</button>
-            <button onclick="dokun('oksa')">🖐️ OKŞA</button>
-            <button onclick="dokun('sert')">🔥 SERT YAP</button>
-            <button onclick="dokun('soyle')">💬 KULAĞINA FISILDA</button>
-        </div>
+    <div id="input-area">
+        <input type="text" id="userInput" placeholder="Selin'e bir şeyler söyle..." autofocus>
+        <button onclick="sendMsg()">GÖNDER</button>
     </div>
-
 </div>
 
 <script>
-    let para = 500000;
-    let hiz = 0;
-    let zevk = 0;
+    let speed = 0;
+    let carPos = 50;
+    let samimiyet = 0;
+    let para = 1250000;
 
-    // --- EKRAN DEĞİŞTİRME ---
-    function ekranDegistir(mod) {
-        document.getElementById('chat-panel').style.display = 'none';
-        document.getElementById('car-panel').style.display = 'none';
-        document.getElementById('bedroom-panel').style.display = 'none';
-
-        if(mod === 'chat') document.getElementById('chat-panel').style.display = 'flex';
-        if(mod === 'car') document.getElementById('car-panel').style.display = 'block';
-        if(mod === 'bedroom') document.getElementById('bedroom-panel').style.display = 'block';
+    // --- ARABA SÜRME (KLAVYE) ---
+    window.addEventListener("keydown", (e) => {
+        const car = document.getElementById("car");
+        if (e.key === "w" || e.key === "W") {
+            speed += 10;
+            if (speed > 300) speed = 300;
+        }
+        if (e.key === "s" || e.key === "S") {
+            speed -= 20;
+            if (speed < 0) speed = 0;
+        }
+        if (e.key === "d" || e.key === "D") { carPos += 15; }
+        if (e.key === "a" || e.key === "A") { carPos -= 15; }
         
-        // Menü rengi güncelleme (basitçe hepsi gri, tıklanan sarı yapmıyorum kafa karışmasın diye)
-    }
+        car.style.left = carPos + "px";
+        document.getElementById("kmh").innerText = speed;
 
-    // --- SPICY CHAT MOTORU (TEKRARI ÖNLEYEN SİSTEM) ---
-    const selinCevaplari = {
-        "merhaba": ["Selam Baronum...", "Aklım sendeydi, nerede kaldın?", "Ooo, sahibim gelmiş."],
-        "naber": ["Seni düşünüyorum, fena şeyler...", "Yatakta yuvarlanıyorum, sıkıldım.", "İyiyim ama seni görünce ısındım."],
-        "soy": ["Burada mı? Çok sabırsızsın...", "Tamam, yavaşça fermuarımı indiriyorum...", "Önce hak etmen lazım, hemen olmaz ;)"],
-        "gel": ["Hemen geliyorum, bekle beni.", "Yatak odasına geçtim bile.", "Altımda hiçbir şey yok, koşarak geliyorum."],
-        "seviş": ["Bunu burada konuşmayalım, 'Yatak Odası'na gel...", "Beni çıldırtıyorsun...", "İstediğin kadar sert olabilirsin."],
-        "default": ["Devam et...", "Hoşuma gidiyor...", "Beni heyecanlandırıyorsun.", "Sesini duymak bile ıslatıyor..."]
+        if (speed > 150 && Math.random() > 0.9) {
+            selinKonus("Yavaşla reisim, valla çok hızlandık! ama hoşuma da gidiyor...");
+        }
+    });
+
+    // --- SPICY CHAT SİSTEMİ ---
+    const cevaplar = {
+        "soy": ["Burada mı? Camlar filmli ama yine de çok hızlısın...", "Sırası mı şimdi? Arabayı sağa çek o zaman...", "Önce bir akşam yemeği yiyelim Baronum..."],
+        "gel": ["Yanı başındayım zaten, daha ne kadar geleyim?", "Eve gidelim, orada istediğini yaparım...", "Dizinin dibindeyim reisim."],
+        "op": ["*Dudaklarına sıcak bir öpücük bırakır*", "Direksiyondayken dikkatini dağıtmasam mı?", "Mmm, tadın çok sert..."],
+        "para": ["Senin paran benim param Baronum...", "Gidip biraz alışveriş mi yapsak?", "Hepsini bugün ezelim mi?"]
     };
 
-    function mesajGonder() {
-        let input = document.getElementById("mesajInput");
-        let mesaj = input.value.toLowerCase();
-        if (mesaj === "") return;
+    function sendMsg() {
+        let input = document.getElementById("userInput");
+        let val = input.value.toLowerCase();
+        if (!val) return;
 
-        ekranaYaz("Sen: " + input.value, "sen");
-        input.value = "";
-
-        // Rastgele cevap seçme mantığı
+        ekranaBas("Sen: " + input.value, "sen");
+        
         setTimeout(() => {
-            let cevap = "";
             let bulundu = false;
-
-            // Kelime taraması
-            for (let anahtar in selinCevaplari) {
-                if (mesaj.includes(anahtar)) {
-                    let liste = selinCevaplari[anahtar];
-                    cevap = liste[Math.floor(Math.random() * liste.length)];
+            for (let anahtar in cevaplar) {
+                if (val.includes(anahtar)) {
+                    let liste = cevaplar[anahtar];
+                    selinKonus(liste[Math.floor(Math.random() * liste.length)]);
+                    samimiyet += 5;
                     bulundu = true;
                     break;
                 }
             }
-            if (!bulundu) {
-                let liste = selinCevaplari["default"];
-                cevap = liste[Math.floor(Math.random() * liste.length)];
+            if (!bulundu) selinKonus("Dinliyorum seni Baronum, anlat...");
+            
+            document.getElementById("samimiyet").innerText = samimiyet + "%";
+            if (samimiyet > 50) {
+                document.getElementById("car").innerText = "🔞"; // Samimiyet artınca mod değişir
             }
-
-            ekranaYaz("Selin: " + cevap, "selin");
         }, 800);
-    }
-
-    function ekranaYaz(txt, tip) {
-        let box = document.getElementById("chat-box");
-        let div = document.createElement("div");
-        div.className = "msg " + tip;
-        div.innerText = txt;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
-    }
-
-    // Enter tuşu
-    document.getElementById("mesajInput").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") mesajGonder();
-    });
-
-    // --- ARABA FİZİKLERİ (BASİT) ---
-    function gazla() {
-        if (hiz < 280) hiz += Math.floor(Math.random() * 20) + 10;
-        updateCar();
-        let olaylar = ["Kızlar sana bakıyor!", "Motor kükrüyor!", "Yanındaki araç tozunu yuttu!", "Polis siren çaldı ama yakalayamaz!"];
-        document.getElementById("yol-durumu").innerText = olaylar[Math.floor(Math.random() * olaylar.length)];
-    }
-
-    function fren() {
-        if (hiz > 0) hiz -= 30;
-        if (hiz < 0) hiz = 0;
-        updateCar();
-    }
-
-    function updateCar() {
-        document.getElementById("hiz").innerText = hiz;
-        let araba = document.getElementById("araba");
-        araba.style.left = (10 + (hiz / 4)) + "%"; // Hızlandıkça sağa kayar
         
-        if (hiz > 200) {
-            araba.classList.add("shake"); // 200'ü geçince titrer
-        } else {
-            araba.classList.remove("shake");
-        }
+        input.value = "";
     }
 
-    // --- YATAK ODASI MEKANİKLERİ ---
-    function dokun(tur) {
-        let artis = 0;
-        let tepki = "";
-
-        if (tur === 'op') {
-            artis = 10;
-            tepki = "Selin: 'Mmm, dudakların çok sıcak...'";
-        } else if (tur === 'oksa') {
-            artis = 15;
-            tepki = "Selin: 'Vücudum titriyor, durma...'";
-        } else if (tur === 'sert') {
-            artis = 25;
-            tepki = "Selin: 'Ah! Evet Baron, daha sert!'";
-        } else if (tur === 'soyle') {
-            artis = 5;
-            tepki = "Selin: 'Kulağıma fısıldadıkların beni bitiriyor...'";
-        }
-
-        zevk += artis;
-        if (zevk > 100) zevk = 100;
-
-        // Görsel güncelleme
-        document.getElementById("zevkBar").style.width = zevk + "%";
-        document.getElementById("zevkYuzde").innerText = zevk;
-        document.getElementById("selin-durum").innerText = tepki;
-
-        // Final (Climax)
-        if (zevk === 100) {
-            document.getElementById("selin-durum").innerHTML = "<b style='color:red'>SELİN ZİRVEYE ULAŞTI! 'Beni mahvettin Baron...'</b>";
-            // Burada zevk barını sıfırlayabilirsin veya ödül verebilirsin
-            setTimeout(() => { zevk = 0; document.getElementById("zevkBar").style.width = "0%"; }, 5000);
-        }
+    function selinKonus(txt) {
+        ekranaBas("Selin: " + txt, "selin");
     }
 
+    function ekranaBas(txt, cls) {
+        let screen = document.getElementById("chat-screen");
+        let div = document.createElement("div");
+        div.className = "msg " + cls;
+        div.innerText = txt;
+        screen.appendChild(div);
+        screen.scrollTop = screen.scrollHeight;
+    }
+
+    // Enter tuşu desteği
+    document.getElementById("userInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMsg();
+    });
 </script>
 
 </body>
