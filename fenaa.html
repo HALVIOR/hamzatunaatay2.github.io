@@ -3,300 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reis Galericilik: Grand Tycoon</title>
+    <title>Reis Galericilik: AI ONLINE</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --main: #1abc9c; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
         
-        /* Layout */
-        .header { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 4px solid var(--main); display: flex; justify-content: space-around; flex-wrap: wrap; margin-bottom: 15px; position: sticky; top: 0; z-index: 100; }
+        .header { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 4px solid var(--main); display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; position: sticky; top: 0; z-index: 100; }
+        .online-count { background: #27ae60; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+
         .grid { display: grid; grid-template-columns: 350px 1fr 350px; gap: 15px; }
-        
-        /* Panel Styles */
         .panel { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #334155; height: fit-content; }
-        h2 { color: var(--main); font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; gap: 10px; }
         
-        /* News Ticker */
-        #news-bar { background: #c0392b; padding: 8px; font-weight: bold; white-space: nowrap; overflow: hidden; border-radius: 5px; margin-bottom: 15px; }
-        #news-content { display: inline-block; animation: scroll 20s linear infinite; }
-        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        /* AI Chat Alanı */
+        .ai-chat { height: 250px; overflow-y: auto; background: #000; border-radius: 10px; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid #1abc9c; }
+        .chat-msg { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px; }
+        .bot-name { color: #3498db; font-weight: bold; }
+        .bot-text { color: #ccc; }
 
-        /* Car Cards */
-        .car-card { background: var(--text); color: #0f172a; padding: 12px; border-radius: 10px; margin-bottom: 12px; transition: 0.3s; position: relative; }
-        .car-card:hover { transform: scale(1.02); }
-        .rarity-makam { border-left: 8px solid #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
+        .car-card { background: var(--text); color: #0f172a; padding: 12px; border-radius: 10px; margin-bottom: 12px; transition: 0.3s; }
         .price { font-weight: bold; color: #27ae60; font-size: 1.1rem; }
-        
-        /* Buttons */
-        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem; }
-        .btn-buy { background: #27ae60; color: white; width: 100%; }
-        .btn-mod { background: #3498db; color: white; margin-top: 5px; }
-        .btn-sell { background: #f39c12; color: white; width: 100%; }
-
-        /* Small UI elements */
-        .stat-box { display: flex; flex-direction: column; align-items: center; }
-        .log-area { height: 150px; overflow-y: auto; background: #000; font-family: monospace; font-size: 0.8rem; padding: 10px; color: #00ff00; border-radius: 5px; }
-        .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #34495e; color: white; }
-
-        @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+        .btn { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn-buy { background: #27ae60; color: white; }
+        .btn-sell { background: #f39c12; color: white; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="stat-box"><span class="badge">NAKİT</span><span id="m-money">0</span> TL</div>
-    <div class="stat-box"><span class="badge">İTİBAR</span><span id="m-rep">0</span></div>
-    <div class="stat-box"><span class="badge">GARAJ</span><span id="m-garage">0/6</span></div>
-    <div class="stat-box"><span class="badge">BİTCOİN</span><span id="m-btc">0</span></div>
-    <button class="btn" style="background:#e74c3c; color:white;" onclick="saveGame()"><i class="fas fa-save"></i> KAYDET</button>
+    <div>💰 <span id="m-money">750.000</span> TL</div>
+    <div class="online-count"><i class="fas fa-circle" style="font-size:0.6rem; color:#fff;"></i> <span id="user-count">1.450</span> OYUNCU AKTİF</div>
+    <button class="btn" style="width:auto; background:#e74c3c; color:white;" onclick="saveGame()">KAYDET</button>
 </div>
-
-<div id="news-bar"><span id="news-content">🚀 Reis Galericilik Grand Tycoon Sürümü Başladı! | Piyasa Hareketli...</span></div>
 
 <div class="grid">
     <div class="panel">
+        <h2><i class="fas fa-comments"></i> GLOBAL CHAT (AI)</h2>
+        <div class="ai-chat" id="chat-box"></div>
+        
+        <h2 style="margin-top:20px;"><i class="fas fa-trophy"></i> ZENGİNLER LİSTESİ</h2>
+        <div id="leaderboard" style="font-size:0.9rem;"></div>
+    </div>
+
+    <div class="panel">
         <h2><i class="fas fa-store"></i> CANLI PİYASA</h2>
         <div id="market-list"></div>
-        <button class="btn" style="width:100%; background:var(--main); color:white; margin-top:10px;" onclick="refreshMarket()">🔄 İLANLARI YENİLE (2.500 TL)</button>
-        
-        <h2 style="margin-top:20px;"><i class="fas fa-chart-line"></i> BORSA / DÖVİZ</h2>
-        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">
-            <div>💵 USD: <b id="rate-usd">0</b> TL</div>
-            <div>₿ BTC: <b id="rate-btc">0</b> TL</div>
-            <div style="margin-top:10px; display:flex; gap:5px;">
-                <button class="btn btn-mod" onclick="tradeBtc('buy')">BTC AL</button>
-                <button class="btn btn-mod" onclick="tradeBtc('sell')" style="background:#e67e22">BTC SAT</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel">
-        <h2><i class="fas fa-warehouse"></i> GARAJIM & SERVİS</h2>
+        <hr style="border-color:#334155;">
+        <h2><i class="fas fa-warehouse"></i> GARAJIM</h2>
         <div id="garage-list"></div>
-        <div id="empty-garage" style="text-align:center; padding:40px; color:#64748b;">Henüz aracın yok Reis, piyasadan bir şeyler kap!</div>
     </div>
 
     <div class="panel">
-        <h2><i class="fas fa-university"></i> BEŞTEPE BANKASI</h2>
-        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:15px;">
-            <p style="font-size:0.8rem;">Kredi Borcu: <b id="loan-val">0</b> TL</p>
-            <button class="btn btn-buy" onclick="takeLoan()" style="background:#8e44ad">500.000 TL KREDİ ÇEK</button>
-            <button class="btn btn-buy" onclick="payLoan()" style="background:#2c3e50; margin-top:5px;">BORÇ ÖDE (100.000 TL)</button>
+        <h2><i class="fas fa-chart-line"></i> EKONOMİ PANELİ</h2>
+        <div style="padding:10px; background:#0f172a; border-radius:10px;">
+            <div>💵 USD: <b id="rate-usd">31.20</b> TL</div>
+            <div>₿ BTC: <b id="rate-btc">1.850.000</b> TL</div>
         </div>
-
-        <h2><i class="fas fa-history"></i> İŞLEM KAYITLARI</h2>
-        <div class="log-area" id="log-box"></div>
+        <button class="btn" style="margin-top:10px; background:var(--main); color:white;" onclick="refreshMarket()">PAZARI GEZ (-2.500 TL)</button>
         
-        <div style="margin-top:15px; font-size:0.7rem; color:#64748b; text-align:center;">
-            İpucu: 'R' tuşuna basarak gizli kodu girebilirsin.
-        </div>
+        <h2 style="margin-top:20px;"><i class="fas fa-university"></i> BANKA KREDİ</h2>
+        <button class="btn" style="background:#8e44ad; color:white;" onclick="takeLoan()">500.000 TL KREDİ ÇEK</button>
+        <p id="loan-info" style="font-size:0.8rem; text-align:center;">Borç: 0 TL</p>
     </div>
 </div>
 
 <script>
-// --- OYUN VERİLERİ ---
-let state = {
-    money: 750000,
-    rep: 10,
-    garage: [],
-    maxGarage: 6,
-    btc: 0,
-    loan: 0,
-    rates: { usd: 31.20, btc: 1850000 }
-};
+let state = { money: 750000, garage: [], btc: 0, loan: 0, rep: 0, usd: 31.20, btcRate: 1850000 };
+let marketItems = [];
+const botNames = ["Gölcüklü_Reis", "Modifiyeci_Apo", "Galerici_Cemo", "Bitcoin_Fati", "Tofaşçı_Kız", "Aslan_Bey", "Vip_Dizayn"];
 
-const CAR_MODELS = [
-    { id: 1, name: "Tofaş Şahin", base: 220000, makam: false, icon: "🚗" },
-    { id: 2, name: "Toyota Corolla", base: 950000, makam: false, icon: "🚙" },
-    { id: 3, name: "VW Passat (Aşiret)", base: 1800000, makam: false, icon: "🚘" },
-    { id: 4, name: "TOGG T10X", base: 2150000, makam: true, icon: "🔋" },
-    { id: 5, name: "Mercedes S600", base: 14500000, makam: true, icon: "🕴️" },
-    { id: 6, name: "Range Rover", base: 9200000, makam: true, icon: "🏔️" },
-    { id: 7, name: "BMW M4 G82", base: 6500000, makam: false, icon: "🔥" }
-];
-
-// --- ÇEKİRDEK SİSTEM ---
+// --- SİSTEM BAŞLAT ---
 function init() {
     loadGame();
-    setInterval(economyTick, 4000);
+    setInterval(aiBanter, 5000); // Botlar konuşur
+    setInterval(economyTick, 4000); // Ekonomi döner
+    setInterval(updateOnlineCount, 3000); // Online sayısı değişir
+    setInterval(aiSnatch, 12000); // Botlar marketten araç kapar
     refreshMarket();
     updateUI();
-    log("Sistem aktif. Hoş geldin Reis!");
-}
-
-function log(msg) {
-    const box = document.getElementById("log-box");
-    box.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + box.innerHTML;
 }
 
 function updateUI() {
     document.getElementById("m-money").innerText = Math.floor(state.money).toLocaleString();
-    document.getElementById("m-rep").innerText = state.rep;
-    document.getElementById("m-garage").innerText = `${state.garage.length}/${state.maxGarage}`;
-    document.getElementById("m-btc").innerText = state.btc.toFixed(4);
-    document.getElementById("rate-usd").innerText = state.rates.usd.toFixed(2);
-    document.getElementById("rate-btc").innerText = state.rates.btc.toLocaleString();
-    document.getElementById("loan-val").innerText = state.loan.toLocaleString();
+    document.getElementById("rate-usd").innerText = state.usd.toFixed(2);
+    document.getElementById("rate-btc").innerText = state.btcRate.toLocaleString();
+    document.getElementById("loan-info").innerText = "Borç: " + state.loan.toLocaleString() + " TL";
     renderMarket();
     renderGarage();
+    renderLeaderboard();
 }
 
-// --- EKONOMİ ---
-function economyTick() {
-    state.rates.usd += (Math.random() * 0.2 - 0.1);
-    state.rates.btc += (Math.random() * 20000 - 10000);
-    
-    if(state.loan > 0) state.loan += Math.floor(state.loan * 0.001); // Faiz işler
-    
-    if(Math.random() > 0.85) {
-        const news = [
-            "📢 SON DAKİKA: Faiz kararı piyasaları vurdu!",
-            "🔥 TOGG satışlarında rekor kırıldı!",
-            "🚓 Maliye, lüks galericileri takibe aldı!",
-            "💰 Bitcoin rekor tazelemeye gidiyor!"
-        ];
-        document.getElementById("news-content").innerText = news[Math.floor(Math.random()*news.length)];
+// --- AI BANTER (SAHTE CHAT) ---
+function aiBanter() {
+    const messages = [
+        "Beyler Tofaş piyasası bitmiş, herkes Passat peşinde.",
+        "Dolar fırlıyor, eldeki arabaları tutun bence.",
+        "Şu an marketteki ilanlar çok temiz, birini kaptım bile!",
+        "Kredi çektim Mercedes aldım, batıyoruz galiba...",
+        "Hamza Reis piyasaya girmiş diyorlar, doğru mu?",
+        "Bitcoin 2 milyon olur mu bu gece?",
+        "Arabayı modifiye ettim, değeri ikiye katlandı."
+    ];
+    const name = botNames[Math.floor(Math.random()*botNames.length)];
+    const msg = messages[Math.floor(Math.random()*messages.length)];
+    const box = document.getElementById("chat-box");
+    box.innerHTML += `<div class="chat-msg"><span class="bot-name">${name}:</span> <span class="bot-text">${msg}</span></div>`;
+    box.scrollTop = box.scrollHeight;
+}
+
+// --- AI SNATCH (BOTLARIN ARAÇ ALMASI) ---
+function aiSnatch() {
+    if(marketItems.length > 0 && Math.random() > 0.7) {
+        const stolen = marketItems.shift();
+        const name = botNames[Math.floor(Math.random()*botNames.length)];
+        const box = document.getElementById("chat-box");
+        box.innerHTML += `<div class="chat-msg" style="color:#e74c3c;">📢 <b>SİSTEM:</b> ${name} marketteki ${stolen.name} ilanını satın aldı!</div>`;
+        updateUI();
     }
+}
+
+function updateOnlineCount() {
+    const count = 1400 + Math.floor(Math.random() * 200);
+    document.getElementById("user-count").innerText = count.toLocaleString();
+}
+
+// --- OYUN MEKANİKLERİ ---
+function economyTick() {
+    state.usd += (Math.random() * 0.2 - 0.1);
+    state.btcRate += (Math.random() * 20000 - 10000);
+    if(state.loan > 0) state.loan += Math.floor(state.loan * 0.001);
     updateUI();
 }
 
-// --- MARKET İŞLEMLERİ ---
-let marketItems = [];
+const CARS = [
+    { name: "Tofaş Şahin", base: 220000, icon: "🚗" },
+    { name: "Passat Aşiret", base: 1850000, icon: "🚘" },
+    { name: "TOGG T10X", base: 2100000, icon: "🔋" },
+    { name: "Mercedes S600", base: 14000000, icon: "🕴️" }
+];
+
 function refreshMarket() {
     if(state.money < 2500) return;
     state.money -= 2500;
     marketItems = [];
     for(let i=0; i<3; i++) {
-        let proto = CAR_MODELS[Math.floor(Math.random() * CAR_MODELS.length)];
-        marketItems.push({
-            ...proto,
-            uId: Math.random().toString(36).substr(2, 5),
-            price: Math.floor(proto.base * (0.85 + Math.random() * 0.4)),
-            mod: 0
-        });
+        let p = CARS[Math.floor(Math.random()*CARS.length)];
+        marketItems.push({ id: Math.random(), name: p.name, icon: p.icon, price: Math.floor(p.base * (0.8 + Math.random()*0.5)) });
     }
     updateUI();
 }
 
-function buyCar(uId) {
-    const car = marketItems.find(c => c.uId === uId);
-    if(state.money >= car.price && state.garage.length < state.maxGarage) {
+function buyCar(id) {
+    const car = marketItems.find(x => x.id === id);
+    if(state.money >= car.price && state.garage.length < 6) {
         state.money -= car.price;
         state.garage.push(car);
-        marketItems = marketItems.filter(c => c.uId !== uId);
-        log(`${car.name} satın alındı.`);
+        marketItems = marketItems.filter(x => x.id !== id);
         updateUI();
-    } else {
-        alert("Para yetersiz veya garaj dolu!");
     }
 }
 
 function sellCar(idx) {
-    const car = state.garage[idx];
-    let offer = Math.floor((car.price + (car.mod * 200000)) * (0.9 + Math.random() * 0.5));
-    if(confirm(`${car.name} için ${offer.toLocaleString()} TL teklif var. Satılsın mı?`)) {
+    let car = state.garage[idx];
+    let offer = Math.floor(car.price * (0.9 + Math.random()*0.6));
+    if(confirm(`${offer.toLocaleString()} TL veriyorlar. Satılsın mı?`)) {
         state.money += offer;
-        state.rep += car.makam ? 15 : 5;
-        log(`${car.name} satıldı. Kar: ${(offer - car.price).toLocaleString()} TL`);
         state.garage.splice(idx, 1);
         updateUI();
     }
 }
 
-function tuneCar(idx) {
-    if(state.money >= 150000) {
-        state.money -= 150000;
-        state.garage[idx].mod += 1;
-        log(`${state.garage[idx].name} modifiye edildi! Değeri arttı.`);
-        updateUI();
-    }
-}
-
-// --- BANKA VE KRİPTO ---
-function takeLoan() {
-    if(state.loan === 0) {
-        state.loan = 500000;
-        state.money += 500000;
-        log("Bankadan 500.000 TL kredi çekildi. Faiz işliyor!");
-        updateUI();
-    }
-}
-
-function payLoan() {
-    if(state.money >= 100000 && state.loan > 0) {
-        state.money -= 100000;
-        state.loan = Math.max(0, state.loan - 100000);
-        updateUI();
-    }
-}
-
-function tradeBtc(type) {
-    if(type === 'buy' && state.money >= state.rates.btc * 0.1) {
-        state.money -= state.rates.btc * 0.1;
-        state.btc += 0.1;
-    } else if (type === 'sell' && state.btc >= 0.1) {
-        state.money += state.rates.btc * 0.1;
-        state.btc -= 0.1;
-    }
-    updateUI();
-}
-
-// --- RENDER ---
 function renderMarket() {
-    const list = document.getElementById("market-list");
-    list.innerHTML = marketItems.map(c => `
-        <div class="car-card ${c.makam ? 'rarity-makam' : ''}">
-            <div>${c.icon} <b>${c.name}</b><br><small>${c.makam ? 'Makam Aracı' : 'Standart'}</small></div>
-            <div style="text-align:right">
-                <div class="price">${c.price.toLocaleString()} TL</div>
-                <button class="btn btn-buy" onclick="buyCar('${c.uId}')">SATIN AL</button>
-            </div>
+    const div = document.getElementById("market-list");
+    div.innerHTML = marketItems.map(c => `
+        <div class="car-card">
+            <div>${c.icon} <b>${c.name}</b></div>
+            <div class="price">${c.price.toLocaleString()} TL</div>
+            <button class="btn btn-buy" onclick="buyCar(${c.id})">AL</button>
         </div>
     `).join('');
 }
 
 function renderGarage() {
-    const list = document.getElementById("garage-list");
-    document.getElementById("empty-garage").style.display = state.garage.length ? 'none' : 'block';
-    list.innerHTML = state.garage.map((c, i) => `
-        <div class="car-card">
-            <div>${c.icon} <b>${c.name}</b> <span class="badge">Lv.${c.mod}</span><br>
-            <small>Maliyet: ${c.price.toLocaleString()}</small></div>
-            <div style="display:flex; gap:5px;">
-                <button class="btn btn-mod" onclick="tuneCar(${i})">MODİFİYE</button>
-                <button class="btn btn-sell" onclick="sellCar(${i})">SAT</button>
-            </div>
+    const div = document.getElementById("garage-list");
+    div.innerHTML = state.garage.map((c, i) => `
+        <div class="car-card" style="border-left:5px solid var(--main)">
+            <div>${c.icon} <b>${c.name}</b></div>
+            <button class="btn btn-sell" onclick="sellCar(${i})">MÜŞTERİYE SAT</button>
         </div>
     `).join('');
 }
 
-// --- KAYIT SİSTEMİ ---
-function saveGame() {
-    localStorage.setItem('reis_galeri_save', JSON.stringify(state));
-    log("Oyun başarıyla kaydedildi.");
+function renderLeaderboard() {
+    const div = document.getElementById("leaderboard");
+    let bots = botNames.map(n => ({name: n, money: 1000000 + Math.random()*50000000}));
+    bots.push({name: "SEN (REİS)", money: state.money});
+    bots.sort((a,b) => b.money - a.money);
+    div.innerHTML = bots.slice(0, 6).map((b, i) => `
+        <div style="display:flex; justify-content:space-between; padding:5px; background:${b.name.includes('SEN') ? '#1abc9c33' : 'transparent'}">
+            <span>${i+1}. ${b.name}</span>
+            <b>${Math.floor(b.money).toLocaleString()}</b>
+        </div>
+    `).join('');
 }
 
-function loadGame() {
-    const saved = localStorage.getItem('reis_galeri_save');
-    if(saved) {
-        state = JSON.parse(saved);
-        log("Eski kayıt yüklendi. Devam et Reis!");
-    }
-}
-
-// --- HİLE KODU ---
-document.addEventListener('keypress', (e) => {
-    if(e.key.toLowerCase() === 'r') {
-        const code = prompt("GİZLİ KOD:");
-        if(code === "saray60") {
-            state.money += 60000000;
-            state.rep = 1000;
-            log("💰 MİLLİ EKONOMİ PAKETİ: +60 Milyon TL!");
-            updateUI();
-        }
-    }
-});
+function takeLoan() { if(state.loan == 0) { state.loan = 500000; state.money += 500000; updateUI(); } }
+function saveGame() { localStorage.setItem('ai_online_save', JSON.stringify(state)); alert("Kaydedildi!"); }
+function loadGame() { const s = localStorage.getItem('ai_online_save'); if(s) state = JSON.parse(s); }
 
 init();
 </script>
