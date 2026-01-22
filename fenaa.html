@@ -3,104 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reis Galericilik: AI CHAT</title>
+    <title>Reis Galericilik: SANAYİ ONLİNE</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --main: #1abc9c; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
+        :root { --main: #e67e22; --bg: #0b0f19; --card: #161b28; --text: #e2e8f0; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-        .grid { display: grid; grid-template-columns: 350px 1fr 350px; gap: 15px; }
-        .panel { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #334155; }
         
-        /* CHAT SİSTEMİ */
-        .ai-chat { height: 350px; overflow-y: auto; background: #000; border-radius: 10px 10px 0 0; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid var(--main); }
-        .chat-input-area { display: flex; gap: 5px; background: #1e293b; padding: 5px; border-radius: 0 0 10px 10px; border: 1px solid var(--main); border-top: none; }
-        #user-msg { flex: 1; padding: 8px; border-radius: 5px; border: none; background: #0f172a; color: white; }
-        .chat-msg { margin-bottom: 8px; }
-        .bot-name { color: #3498db; font-weight: bold; }
-        .user-name { color: #f1c40f; font-weight: bold; }
+        /* Layout */
+        .grid { display: grid; grid-template-columns: 380px 1fr 380px; gap: 15px; height: 95vh; }
+        .panel { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid #2d3748; display: flex; flex-direction: column; }
         
-        .car-card { background: var(--text); color: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-        .btn { border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
-        .btn-buy { background: #27ae60; color: white; }
+        /* Chat UI */
+        .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .ai-chat { flex: 1; overflow-y: auto; background: #05070a; border-radius: 8px; padding: 10px; font-family: 'Courier New', monospace; font-size: 0.9rem; border: 1px solid #2d3748; }
+        .chat-input-area { display: flex; gap: 5px; margin-top: 10px; }
+        #user-msg { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #2d3748; background: #0b0f19; color: white; }
+        
+        /* Mesaj Stilleri */
+        .chat-msg { margin-bottom: 10px; line-height: 1.4; border-left: 3px solid transparent; padding-left: 8px; }
+        .bot-name { color: #f39c12; font-weight: bold; }
+        .user-name { color: #3498db; font-weight: bold; }
+        .system-msg { color: #95a5a6; font-style: italic; font-size: 0.8rem; }
+
+        /* Araba Kartları */
+        .car-card { background: #1f2937; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #374151; transition: 0.2s; position: relative; }
+        .car-card:hover { border-color: var(--main); }
+        .car-info { display: flex; justify-content: space-between; align-items: flex-start; }
+        .condition { font-size: 0.75rem; color: #9ca3af; margin-top: 4px; }
+        .price { color: #10b981; font-weight: bold; font-size: 1.1rem; }
+
+        /* Stats */
+        .header-stats { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 3px solid var(--main); }
+        .stat-item { text-align: center; }
+        .stat-label { font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; }
+        .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--main); }
+
+        /* Butonlar */
+        .btn { border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-buy { background: #10b981; color: white; width: 100%; margin-top: 8px; }
+        .btn-sell { background: var(--main); color: white; flex: 1; }
+        .btn-refresh { background: #3b82f6; color: white; width: 100%; margin-bottom: 15px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 10px; }
     </style>
 </head>
 <body>
 
+<div class="header-stats">
+    <div class="stat-item"><div class="stat-label">Cepteki Nakit</div><div class="stat-value" id="m-money">750.000 TL</div></div>
+    <div class="stat-item"><div class="stat-label">Piyasa İtibarı</div><div class="stat-value" id="m-rep">10</div></div>
+    <div class="stat-item"><div class="stat-label">Garaj Durumu</div><div class="stat-value" id="m-garage">0 / 6</div></div>
+    <div class="stat-item"><div class="stat-label">Dolar/TL</div><div class="stat-value" id="m-usd">31.20</div></div>
+</div>
+
 <div class="grid">
-    <div class="panel">
-        <h2><i class="fas fa-comments"></i> GLOBAL CANLI DESTEK</h2>
+    <div class="panel chat-container">
+        <h2><i class="fas fa-users"></i> SANAYİ GRUBU (ONLİNE)</h2>
         <div class="ai-chat" id="chat-box"></div>
         <div class="chat-input-area">
-            <input type="text" id="user-msg" placeholder="Botlara bir şey sor..." onkeypress="if(event.key === 'Enter') sendMessage()">
-            <button onclick="sendMessage()" style="background:var(--main); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Yolla</button>
+            <input type="text" id="user-msg" placeholder="Bir şey de aq..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn" onclick="sendMessage()" style="background:var(--main); color:white;">Yolla</button>
         </div>
-        
-        <div id="leaderboard" style="margin-top:15px; font-size:0.8rem;"></div>
     </div>
 
-    <div class="panel">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2><i class="fas fa-store"></i> ARAÇ PİYASASI</h2>
-            <span id="m-money" style="color:var(--main); font-weight:bold;">750.000 TL</span>
-        </div>
+    <div class="panel" style="overflow-y: auto;">
+        <h2><i class="fas fa-car"></i> ARAÇ PAZARI</h2>
+        <button class="btn btn-refresh" onclick="refreshMarket()"><i class="fas fa-sync"></i> PİYASAYI SALLA (-2.500 TL)</button>
         <div id="market-list"></div>
-        <button class="btn" style="background:var(--main); color:white; margin-top:10px;" onclick="refreshMarket()">YENİ İLANLAR</button>
-        <hr>
-        <h2><i class="fas fa-warehouse"></i> GARAJIM</h2>
+        
+        <h2 style="margin-top:20px;"><i class="fas fa-warehouse"></i> ŞAHSİ GARAJIN</h2>
         <div id="garage-list"></div>
     </div>
 
     <div class="panel">
-        <h2><i class="fas fa-chart-line"></i> EKONOMİ</h2>
-        <p>💵 USD: <span id="rate-usd">31.20</span> TL</p>
-        <p>₿ BTC: <span id="rate-btc">1.850.000</span> TL</p>
-        <button class="btn" style="background:#8e44ad; color:white;" onclick="saveGame()">KAYDET</button>
+        <h2><i class="fas fa-landmark"></i> GALERİCİLER BANKASI</h2>
+        <div style="background:#0b0f19; padding:15px; border-radius:8px;">
+            <p>Kredi Limiti: <b id="loan-limit">5.000.000</b> TL</p>
+            <p>Mevcut Borç: <b id="m-loan" style="color:var(--danger)">0</b> TL</p>
+            <button class="btn" onclick="takeLoan()" style="background:#8e44ad; color:white; width:100%;">1.000.000 TL KREDİ ÇEK</button>
+        </div>
+
+        <h2 style="margin-top:25px;"><i class="fas fa-chart-pie"></i> EKONOMİ VE HABERLER</h2>
+        <div id="news-box" style="font-size:0.85rem; color:#94a3b8; line-height:1.6;">
+            Piyasa şu an sakin, çayını içmene bak Reis...
+        </div>
+
+        <button class="btn" style="margin-top:auto; background:#2d3748; color:white;" onclick="saveGame()">
+            <i class="fas fa-save"></i> OYUNU KAYDET (LOCAL)
+        </button>
     </div>
 </div>
 
 <script>
-let state = { money: 750000, garage: [], usd: 31.20, btc: 1850000 };
-const botNames = ["Gölcüklü_Reis", "Modifiyeci_Apo", "Galerici_Cemo", "Bitcoin_Fati", "Vip_Dizayn"];
+// --- VERİ TABANI VE DEĞİŞKENLER ---
+let state = {
+    money: 750000,
+    rep: 10,
+    garage: [],
+    loan: 0,
+    usd: 31.20,
+    maxGarage: 6
+};
 
-// --- AI CEVAP MANTIĞI ---
+const botNames = ["Gölcüklü_Apo", "Sarı_Mercedes_Hüseyin", "Kaportacı_Fiko", "Yazılımcı_Mert", "Tofaşçı_Semih", "Aşiret_Paket_Memo"];
+const carModels = [
+    { name: "Tofaş Şahin", base: 250000, icon: "🚗" },
+    { name: "VW Passat", base: 1950000, icon: "🚘" },
+    { name: "TOGG T10X", base: 2200000, icon: "🔋" },
+    { name: "Mercedes S600", base: 15000000, icon: "🕴️" },
+    { name: "BMW M5", base: 8500000, icon: "🏁" }
+];
+
+// --- OYUN BAŞLATMA ---
+function init() {
+    loadGame();
+    refreshMarket();
+    setInterval(updateEconomy, 5000);
+    setInterval(botTalk, 12000);
+    updateUI();
+    addChatMsg("SİSTEM", "Gruba katıldın. Sanayiye hoş geldin aq.", "system-msg");
+}
+
+// --- AI CHAT SİSTEMİ (KÜFÜRLÜ & MANTIKLI) ---
 function sendMessage() {
     const input = document.getElementById("user-msg");
-    const msg = input.value.trim().toLowerCase();
-    if(!msg) return;
+    const rawMsg = input.value.trim();
+    if(!rawMsg) return;
 
-    addChatMsg("SEN (REİS)", input.value, "user-name");
+    addChatMsg("SEN", rawMsg, "user-name");
+    const msg = rawMsg.toLowerCase();
     input.value = "";
 
-    // Bot cevabı için biraz gecikme (düşünüyor gibi)
     setTimeout(() => {
         let response = "";
-        const botName = botNames[Math.floor(Math.random()*botNames.length)];
+        const bot = botNames[Math.floor(Math.random()*botNames.length)];
 
-        if(msg.includes("selam") || msg.includes("merhaba") || msg.includes("naber")) {
-            response = "Aleyküm selam Reis, piyasayı kolluyoruz valla sen n'apıyorsun?";
-        } else if(msg.includes("dolar") || msg.includes("usd")) {
-            response = state.usd > 32 ? "Dolar fırladı Reis, eldeki arabaların fiyatını artır bence." : "Dolar stabil şu an, alım zamanı olabilir.";
-        } else if(msg.includes("btc") || msg.includes("bitcoin")) {
-            response = "Bitcoin kumar işi Reis, ama iyi kazandırıyor. Dikkat et çarpılma.";
-        } else if(msg.includes("tofaş") || msg.includes("şahin")) {
-            response = "Tofaş candır, piyasası asla ölmez. Temizini bulursan kaçırma.";
+        // Akıllı Filtre
+        if(msg.includes("naber") || msg.includes("sa") || msg.includes("selam")) {
+            response = "As Reis, sanayide sürünüyoruz aq sen n'apıyon?";
         } else if(msg.includes("para") || msg.includes("zengin")) {
-            response = "Parayı vurdukça bizi unutma ha! Liderlik tablosunda geliyorum arkandan.";
-        } else if(msg.includes("togg")) {
-            response = "Yerli otomobil TOGG piyasayı sallıyor, bulursan hemen kap!";
+            response = "Para var ki konuşuyoruz herhalde, boş yapma işine bak.";
+        } else if(msg.includes("dolar")) {
+            response = state.usd > 32 ? "Dolar fırladı, giren bize giriyor aq." : "Dolar yerinde sayıyor da araba fiyatları durmuyor ki.";
+        } else if(msg.includes("al") || msg.includes("sat")) {
+            response = "Al-sat yapacaksan hızlı ol, piyasada kurt çok.";
+        } else if(msg.includes("küfür") || msg.includes("söv")) {
+            response = "Sövme lan bana, dükkanına gelir vites kolunu sökerim senin!";
+        } else if(msg.includes("tofaş")) {
+            response = "Tofaş piyasası bitmez Reis, her zaman alıcısı var.";
         } else {
-            const generic = [
-                "Valla piyasa bugün çok durgun ya.",
-                "Senin garajdaki arabalar fena duruyor Reis.",
-                "Geçen gün bir Mercedes kaçırdım, hala ona yanıyorum.",
-                "Ekmek aslanın ağzında, galerici olmak zor zanaat.",
-                "Reis bugün bi' güzellik yaparsın artık bize."
+            const kufurler = [
+                "Boş yapma aq, git araba al piyasa dönmüyor.",
+                "Sen ne anlatıyon be abi?",
+                "Geçen gün bi' Mercedes kaçırdım hala ona yanıyorum siktir et.",
+                "Bu grupta boş konuşanı kaportacıya veriyoruz haberin olsun.",
+                "Reis bugün bi' çay ısmarla da keyfimiz yerine gelsin.",
+                "Lan dün biri geldi 200 binlik arabaya 100 bin veriyor, söve söve kovdum."
             ];
-            response = generic[Math.floor(Math.random()*generic.length)];
+            response = kufurler[Math.floor(Math.random()*kufurler.length)];
         }
-
-        addChatMsg(botName, response, "bot-name");
-    }, 800);
+        addChatMsg(bot, response, "bot-name");
+    }, 700);
 }
 
 function addChatMsg(user, text, className) {
@@ -109,56 +173,131 @@ function addChatMsg(user, text, className) {
     box.scrollTop = box.scrollHeight;
 }
 
-// --- OTOMATİK BOT KONUŞMASI ---
-setInterval(() => {
-    if(Math.random() > 0.7) {
-        const botName = botNames[Math.floor(Math.random()*botNames.length)];
-        const randomMsgs = ["Piyasa çok kızışacak demedi demeyin.", "Doların haline bak be!", "Reis bi' makam aracı çekti kendine gördünüz mü?", "Tofaş al-sat yapan köşeyi döndü valla."];
-        addChatMsg(botName, randomMsgs[Math.floor(Math.random()*randomMsgs.length)], "bot-name");
+function botTalk() {
+    if(Math.random() > 0.5) {
+        const bot = botNames[Math.floor(Math.random()*botNames.length)];
+        const msgs = ["Beyler dolar yine oynuyor, dikkat edin.", "Sanayide çay içecek adam kalmamış aq.", "Dün bi' Passat sattım, parayı çatır çatır yiyorum.", "Hamza Reis piyasayı kuruttu, bize bir şey bırakmadı!"];
+        addChatMsg(bot, msgs[Math.floor(Math.random()*msgs.length)], "bot-name");
     }
-}, 10000);
+}
 
-// --- DİĞER FONKSİYONLAR (Grand Tycoon'dan Basit Hali) ---
-function refreshMarket() {
-    state.money -= 1000;
-    const items = ["Tofaş Şahin", "Passat Aşiret", "TOGG T10X", "Mercedes S600"];
-    const list = document.getElementById("market-list");
-    list.innerHTML = "";
-    for(let i=0; i<3; i++) {
-        const name = items[Math.floor(Math.random()*items.length)];
-        const price = Math.floor(Math.random()*2000000) + 200000;
-        list.innerHTML += `<div class="car-card"><b>${name}</b><br>${price.toLocaleString()} TL <button class="btn btn-buy" onclick="buyCar('${name}', ${price})">AL</button></div>`;
+// --- EKONOMİ VE PİYASA ---
+function updateEconomy() {
+    state.usd += (Math.random() * 0.4 - 0.2);
+    if(state.loan > 0) state.loan += Math.floor(state.loan * 0.005); // Borç faizi
+    
+    if(Math.random() > 0.8) {
+        const news = [
+            "🔥 SON DAKİKA: ÖTV zammı kapıda, fiyatlar fırlayacak!",
+            "📢 Merkez Bankası faizleri sabit tuttu.",
+            "🚙 İkinci el araç satışlarında patlama yaşanıyor."
+        ];
+        document.getElementById("news-box").innerText = news[Math.floor(Math.random()*news.length)];
     }
     updateUI();
 }
 
-function buyCar(n, p) {
-    if(state.money >= p) {
-        state.money -= p;
-        state.garage.push({name: n, price: p});
-        updateUI();
-        addChatMsg("SİSTEM", `${n} garaja eklendi!`, "bot-name");
+let marketItems = [];
+function refreshMarket() {
+    if(state.money < 2500) return;
+    state.money -= 2500;
+    marketItems = [];
+    for(let i=0; i<4; i++) {
+        let model = carModels[Math.floor(Math.random()*carModels.length)];
+        let conds = ["Hatasız-Boyasız", "2 Parça Lokal", "Bel Altı Boyalı", "Ağır Hasarlı"];
+        marketItems.push({
+            id: Math.random().toString(36).substr(2, 5),
+            name: model.name,
+            icon: model.icon,
+            price: Math.floor(model.base * (0.8 + Math.random()*0.5)),
+            cond: conds[Math.floor(Math.random()*conds.length)]
+        });
     }
+    updateUI();
 }
 
-function updateUI() {
-    document.getElementById("m-money").innerText = state.money.toLocaleString() + " TL";
-    const gList = document.getElementById("garage-list");
-    gList.innerHTML = state.garage.map((c, i) => `<div class="car-card">${c.name} <button class="btn" style="background:#f39c12; color:white;" onclick="sellCar(${i})">SAT</button></div>`).join('');
+function buyCar(id) {
+    const car = marketItems.find(x => x.id === id);
+    if(state.money >= car.price && state.garage.length < state.maxGarage) {
+        state.money -= car.price;
+        state.garage.push(car);
+        marketItems = marketItems.filter(x => x.id !== id);
+        addChatMsg("SİSTEM", `${car.name} başarıyla garaja çekildi.`, "system-msg");
+        updateUI();
+    } else {
+        alert("Para yok ya da garaj dolu aq!");
+    }
 }
 
 function sellCar(idx) {
-    const p = state.garage[idx].price * (1.2 + Math.random());
-    state.money += p;
-    state.garage.splice(idx, 1);
-    updateUI();
-    addChatMsg("SİSTEM", `Araba ${Math.floor(p).toLocaleString()} TL'ye satıldı!`, "bot-name");
+    const car = state.garage[idx];
+    let profit = (Math.random() * 0.4) + 0.9;
+    let offer = Math.floor(car.price * profit);
+    
+    if(confirm(`${car.name} için ${offer.toLocaleString()} TL teklif var. Satalım mı?`)) {
+        state.money += offer;
+        state.rep += 5;
+        state.garage.splice(idx, 1);
+        addChatMsg("SİSTEM", `Aracı sattın. Kar: ${(offer - car.price).toLocaleString()} TL`, "system-msg");
+        updateUI();
+    }
 }
 
-function saveGame() { localStorage.setItem('ai_chat_save', JSON.stringify(state)); alert("Kaydedildi!"); }
-if(localStorage.getItem('ai_chat_save')) state = JSON.parse(localStorage.getItem('ai_chat_save'));
-updateUI();
-refreshMarket();
+// --- BANKA ---
+function takeLoan() {
+    if(state.loan === 0) {
+        state.loan = 1000000;
+        state.money += 1000000;
+        addChatMsg("BANKA", "Kredin onaylandı, faiz biniyor hadi hayırlı olsun.", "bot-name");
+        updateUI();
+    } else {
+        alert("Önce borcunu öde aq!");
+    }
+}
+
+// --- UI VE KAYIT ---
+function updateUI() {
+    document.getElementById("m-money").innerText = Math.floor(state.money).toLocaleString() + " TL";
+    document.getElementById("m-rep").innerText = state.rep;
+    document.getElementById("m-garage").innerText = `${state.garage.length} / ${state.maxGarage}`;
+    document.getElementById("m-usd").innerText = state.usd.toFixed(2);
+    document.getElementById("m-loan").innerText = state.loan.toLocaleString();
+
+    // Market
+    const mDiv = document.getElementById("market-list");
+    mDiv.innerHTML = marketItems.map(c => `
+        <div class="car-card">
+            <div class="car-info">
+                <div>${c.icon} <b>${c.name}</b><div class="condition">${c.cond}</div></div>
+                <div class="price">${c.price.toLocaleString()} TL</div>
+            </div>
+            <button class="btn btn-buy" onclick="buyCar('${c.id}')">PAZARLIKSIZ AL</button>
+        </div>
+    `).join('');
+
+    // Garaj
+    const gDiv = document.getElementById("garage-list");
+    gDiv.innerHTML = state.garage.map((c, i) => `
+        <div class="car-card" style="border-left: 5px solid var(--main)">
+            <div class="car-info">
+                <div>${c.icon} <b>${c.name}</b></div>
+                <button class="btn btn-sell" onclick="sellCar(${i})">MÜŞTERİYE SAT</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function saveGame() {
+    localStorage.setItem('sanayi_pro_save', JSON.stringify(state));
+    addChatMsg("SİSTEM", "Oyun kaydedildi Reis.", "system-msg");
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('sanayi_pro_save');
+    if(saved) state = JSON.parse(saved);
+}
+
+init();
 </script>
 </body>
 </html>
