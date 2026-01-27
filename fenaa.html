@@ -2,203 +2,152 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>SANAYİ BARONU: 20 LEŞ</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>BRABUS G-WAGON: SANAYİ SHOWROOM</title>
     <style>
-        :root { --main: #c0392b; --bg: #05070a; --card: #111827; --text: #f3f4f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; overflow: hidden; }
-        .grid { display: grid; grid-template-columns: 350px 1fr 350px; gap: 10px; height: 98vh; }
-        .panel { background: var(--card); border-radius: 10px; padding: 12px; border: 1px solid #1f2937; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* SCROLLS */
-        .scroll { overflow-y: auto; flex: 1; padding-right: 5px; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--main); }
-
-        /* LISTS */
-        .item-row { background: #0b0f19; padding: 8px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #374151; font-size: 0.85rem; }
-        .wanted-bar { height: 5px; background: #333; margin-top: 5px; border-radius: 10px; }
-        .wanted-fill { height: 100%; background: #e74c3c; transition: 0.3s; }
-
-        /* CHAT */
-        .ai-chat { flex: 1; background: #000; padding: 10px; font-family: monospace; font-size: 0.75rem; border: 1px solid #334155; margin-bottom: 5px; }
-        
-        /* BTNS */
-        .btn { border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; color: #fff; font-size: 0.75rem; }
-        .btn-red { background: #c0392b; }
-        .btn-green { background: #27ae60; }
-        .btn-blue { background: #2980b9; }
-
-        .car-card { background: #1f2937; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #374151; }
-        .flash { animation: flash-red 0.5s infinite; }
-        @keyframes flash-red { 0%, 100% { color: #fff; } 50% { color: #ff0000; } }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; }
+        canvas { display: block; width: 100%; height: 100vh; }
+        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #e67e22; font-size: 1.5rem; }
+        #info { position: absolute; bottom: 20px; left: 20px; color: #fff; text-shadow: 2px 2px 4px #000; }
+        #controls { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; }
+        .btn { background: #e67e22; border: none; padding: 8px 12px; color: white; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; }
     </style>
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
 </head>
 <body>
 
-<div style="background:var(--card); padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content: space-between; align-items:center; border-bottom:3px solid var(--main);">
-    <div>💰 NAKİT: <b id="m-money" style="color:#2ecc71">0</b> TL | 🏠 KASA (SAFE): <b id="m-safe" style="color:#f1c40f">0</b> TL</div>
-    <div id="status-label" style="font-weight:bold; letter-spacing:1px;">SANAYİ SAKİN...</div>
-    <div>👑 İTİBAR: <b id="m-rep">0</b> | 🚨 ARANMA: <div class="wanted-bar" style="width:100px; display:inline-block;"><div id="wanted-fill" class="wanted-fill"></div></div></div>
+<div id="loading">BRABUS Yükleniyor... Sanayi Hazırlanıyor...</div>
+<div id="info">
+    <h1 style="margin: 0; color: #e67e22;">BRABUS G800</h1>
+    <p>Sanayi Baronu Özel Yapım. | Mouse ile çevir, tekerlekle yaklaş.</p>
 </div>
 
-<div class="grid">
-    <div class="panel">
-        <h3 style="color:#2ecc71"><i class="fas fa-chart-line"></i> BORSA İSTANBUL</h3>
-        <div id="stocks" class="scroll"></div>
-        <hr style="border:0.5px solid #333">
-        <h3><i class="fas fa-home"></i> GÜVENLİ EV</h3>
-        <button class="btn btn-blue" onclick="stashMoney()" style="width:100%; margin-bottom:5px;">PARAYI KASAYA KİLİTLE (%10 Komisyon)</button>
-        <button class="btn btn-green" onclick="payPolice()" style="width:100%;">RÜŞVET VER (500.000 TL)</button>
-        <div style="font-size: 0.7rem; color: #94a3b8; margin-top:10px;">*Kasaya attığın paraya polis çökemez.</div>
-    </div>
-
-    <div class="panel">
-        <h3><i class="fas fa-skull-crossbones"></i> KARANLIK CHAT</h3>
-        <div class="ai-chat" id="chat-box" class="scroll"></div>
-        <div style="display:flex; gap:5px; margin-bottom:15px;">
-            <input type="text" id="user-msg" placeholder="Raconunu kes..." style="flex:1; background:#000; color:white; border:1px solid #334155; padding:8px;" onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="btn btn-red" onclick="sendMessage()">YOLLA</button>
-        </div>
-        <h3><i class="fas fa-car"></i> GALERİ VİTRİNİ</h3>
-        <div id="market" class="scroll"></div>
-    </div>
-
-    <div class="panel">
-        <h3><i class="fas fa-crosshairs"></i> HEDEFLER (20 KİŞİ)</h3>
-        <div id="targets" class="scroll"></div>
-        <div style="margin-top:10px; font-size:0.75rem; background:#000; padding:5px; border-radius:5px;">
-            <b>GÖREV:</b> Tüm rakipleri temizle ve paralarını kasana at.
-        </div>
-    </div>
+<div id="controls">
+    <h3 style="margin:0; color:#e67e22">Kontroller</h3>
+    <button class="btn" onclick="toggleLights()">Farları Aç/Kapa</button>
+    <button class="btn" onclick="rotateCar()">Otomatik Döndür</button>
 </div>
 
 <script>
-let state = { money: 1000000, safeMoney: 0, rep: 0, wanted: 0, stocks: [0,0,0,0,0], garage: [] };
-const stockNames = ["REİS GYO", "KOCAELİ ÇELİK", "GÖLCÜK MARİNA", "HIZLI ALSAT", "SANAYİ COIN"];
-let stockPrices = [120, 450, 800, 50, 2000];
-
-const names = ["Çakal Nuri", "Kel Mahmut", "Sülün Osman", "Baron Erol", "Laz Ziya", "Testere Necmi", "Kılıç", "Pala", "Tuncay", "Abuzer", "Erdal", "Tombalacı", "Muro", "Çeto", "Azer", "Timsah", "Vartolu", "Cumali", "Yamaç", "Ebu Zer"];
-let targets = names.map(n => ({ name: n, money: Math.floor(Math.random()*5000000) + 500000, alive: true }));
+let scene, camera, renderer, controls, car;
+let headlights = [], isRotating = false;
 
 function init() {
-    render();
-    setInterval(tick, 3000);
-    setInterval(aiChatter, 6000);
-    addChatMsg("SİSTEM", "Piyasaya hoş geldin Baron. 20 rakibin var. Hepsini paketle.", "color:gray");
+    // SAHNE VE KAMERA
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0a0a0a, 10, 50);
+
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(5, 2, 5);
+
+    // RENDERER
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    // KONTROLLER
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.maxDistance = 15;
+    controls.minDistance = 2;
+
+    // IŞIKLAR (Gece Modu)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
+
+    const spotLight = new THREE.SpotLight(0xffffff, 1);
+    spotLight.position.set(0, 10, 0);
+    spotLight.angle = Math.PI / 6;
+    spotLight.penumbra = 0.5;
+    spotLight.castShadow = true;
+    scene.add(spotLight);
+
+    // ZEMİN (Asfalt)
+    const floorGeometry = new THREE.PlaneGeometry(100, 100);
+    const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.5 });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // MODELİ YÜKLE (Buraya Brabus modelinin adını yaz)
+    const loader = new THREE.GLTFLoader();
+    loader.load('brabus.glb', function(gltf) { // <-- Model adını buradan değiştir
+        car = gltf.scene;
+        car.scale.set(1, 1, 1); // Gerekirse boyutu ayarla
+        car.position.set(0, 0, 0);
+        
+        car.traverse(function(node) {
+            if(node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+                // Brabus logosu veya farlar için materyal bulma (Örnek)
+                if(node.name.includes("Headlight")) headlights.push(node);
+            }
+        });
+
+        scene.add(car);
+        document.getElementById("loading").style.display = "none";
+        
+        // Farları ekle (Basit bir spot ışığı olarak)
+        createHeadlights();
+
+    }, undefined, function(error) {
+        console.error(error);
+        document.getElementById("loading").innerHTML = "HATA: Model yüklenemedi! (Dosya adını kontrol et)";
+        document.getElementById("loading").style.color = "red";
+    });
+
+    // ÇEVRE (HDRI - İsteğe bağlı)
+    // new THREE.RGBELoader().load('sanayi_night.hdr', function(texture) {
+    //     texture.mapping = THREE.EquirectangularReflectionMapping;
+    //     scene.environment = texture;
+    //     scene.background = texture;
+    // });
+
+    window.addEventListener('resize', onWindowResize);
+    animate();
 }
 
-function tick() {
-    // Ekonomi
-    stockPrices = stockPrices.map(p => Math.max(10, p + (Math.random()*40 - 20)));
-    if(state.wanted > 0) state.wanted -= 1;
+function createHeadlights() {
+    const leftLight = new THREE.SpotLight(0xffffff, 2, 20, Math.PI/8, 0.5, 1);
+    leftLight.position.set(0.8, 0.8, -1.5); // Konumu modele göre ayarla
+    leftLight.target.position.set(0.8, 0, -10);
     
-    // Polis Baskını
-    if(state.wanted > 60 && Math.random() > 0.85) {
-        let loss = Math.floor(state.money * 0.8);
-        state.money -= loss;
-        state.wanted = 0;
-        alert("🚨 BASKIN! Polis üzerindeki " + loss.toLocaleString() + " TL'ye el koydu! Kasadaki parana dokunamadılar.");
-    }
-    render();
+    const rightLight = new THREE.SpotLight(0xffffff, 2, 20, Math.PI/8, 0.5, 1);
+    rightLight.position.set(-0.8, 0.8, -1.5); // Konumu modele göre ayarla
+    rightLight.target.position.set(-0.8, 0, -10);
+
+    headlights.push(leftLight, rightLight);
+    // Farları başlangıçta kapalı tut veya aç
+    headlights.forEach(h => { h.visible = false; scene.add(h); scene.add(h.target); });
 }
 
-function render() {
-    document.getElementById("m-money").innerText = Math.floor(state.money).toLocaleString();
-    document.getElementById("m-safe").innerText = Math.floor(state.safeMoney).toLocaleString();
-    document.getElementById("m-rep").innerText = state.rep;
-    document.getElementById("wanted-fill").style.width = state.wanted + "%";
-    document.getElementById("status-label").innerText = state.wanted > 70 ? "🔥 ARANIYORSUN!" : "SANAYİ SAKİN...";
-    document.getElementById("status-label").className = state.wanted > 70 ? "flash" : "";
-
-    // Borsa
-    document.getElementById("stocks").innerHTML = stockNames.map((n, i) => `
-        <div class="item-row">
-            <span>${n}: <b>${Math.floor(stockPrices[i])}</b></span>
-            <div>
-                <button class="btn btn-green" onclick="buyStock(${i})">AL</button>
-                <button class="btn btn-red" onclick="sellStock(${i})">SAT</button>
-            </div>
-        </div>
-    `).join('') + `<p style="font-size:0.6rem">Portföy: ${state.stocks.join(' | ')}</p>`;
-
-    // Hedefler
-    document.getElementById("targets").innerHTML = targets.map((t, i) => `
-        <div class="item-row" style="opacity: ${t.alive ? 1 : 0.4}">
-            <span>${t.alive ? '🎯' : '💀'} ${t.name}</span>
-            ${t.alive ? `<button class="btn btn-red" onclick="shoot(${i})">VUR 🔫</button>` : '<span>MEFTA</span>'}
-        </div>
-    `).join('');
-
-    // Market
-    const cars = ["Tofaş", "Passat", "S600", "Range", "M5"];
-    document.getElementById("market").innerHTML = Array.from({length:2}, () => {
-        let p = Math.floor(Math.random()*2000000) + 200000;
-        let n = cars[Math.floor(Math.random()*5)];
-        return `<div class="car-card"><b>${n}</b> - ${p.toLocaleString()} TL <button class="btn btn-green" style="float:right" onclick="buyCar(${p})">AL</button></div>`;
-    }).join('');
+function toggleLights() {
+    headlights.forEach(h => h.visible = !h.visible);
 }
 
-// AKSİYONLAR
-function shoot(idx) {
-    if(!targets[idx].alive) return;
-    let success = Math.random() > 0.4;
-    if(success) {
-        let loot = Math.floor(targets[idx].money * 0.3);
-        state.money += loot;
-        state.rep += 100;
-        state.wanted += 25;
-        targets[idx].alive = false;
-        addChatMsg("SİSTEM", `${targets[idx].name} indirildi. ${loot.toLocaleString()} TL cebe indi.`, "color:red; font-weight:bold;");
-    } else {
-        state.wanted += 15;
-        addChatMsg("SİSTEM", "Iska geçtin! Mahalle ayağa kalktı aq.", "color:orange");
-    }
-    render();
+function rotateCar() {
+    isRotating = !isRotating;
 }
 
-function stashMoney() {
-    if(state.money > 1000) {
-        let amt = state.money;
-        state.money = 0;
-        state.safeMoney += (amt * 0.9);
-        addChatMsg("BANKA", "Para kasaya kilitlendi. Polis artık dokunamaz.", "color:yellow");
-        render();
-    }
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function payPolice() {
-    if(state.money >= 500000) {
-        state.money -= 500000;
-        state.wanted = 0;
-        addChatMsg("SİSTEM", "Rüşvet verildi, dosya kapandı.", "color:cyan");
-        render();
-    }
-}
-
-function buyStock(i) { if(state.money >= stockPrices[i]) { state.money -= stockPrices[i]; state.stocks[i]++; render(); } }
-function sellStock(i) { if(state.stocks[i] > 0) { state.stocks[i]--; state.money += stockPrices[i]; render(); } }
-function buyCar(p) { if(state.money >= p) { state.money -= p; state.rep += 50; render(); } }
-
-function aiChatter() {
-    const alive = targets.filter(t => t.alive);
-    if(alive.length > 0) {
-        const t = alive[Math.floor(Math.random()*alive.length)];
-        const msgs = ["Dolar artıyor aq!", "Borsa'da Marina hissesi fena patladı.", "Sanayide biri herkesi vuruyor, dikkat edin.", "Baronluk senin neyine lale!", "Para bitti dert bitmedi be."];
-        addChatMsg(t.name, msgs[Math.floor(Math.random()*msgs.length)], "color:#3498db");
-    }
-}
-
-function sendMessage() {
-    const input = document.getElementById("user-msg");
-    addChatMsg("SEN (BARON)", input.value, "color:#f1c40f");
-    input.value = "";
-}
-
-function addChatMsg(u, t, s) {
-    const box = document.getElementById("chat-box");
-    box.innerHTML += `<div style="${s}"><b>${u}:</b> ${t}</div>`;
-    box.scrollTop = box.scrollHeight;
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    if(car && isRotating) car.rotation.y += 0.005;
+    renderer.render(scene, camera);
 }
 
 init();
