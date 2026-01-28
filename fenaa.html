@@ -2,21 +2,25 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GTA 7 - 2D Mafia Edition</title>
+    <title>GTA 7 - 2D Mafia & Police Edition</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #222; font-family: sans-serif; }
-        canvas { display: block; background: #333; }
-        #ui { position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 10px; pointer-events: none; }
+        body { margin: 0; overflow: hidden; background: #111; font-family: 'Courier New', Courier, monospace; }
+        canvas { display: block; }
+        #ui { position: absolute; top: 15px; left: 15px; color: #0f0; background: rgba(0,0,0,0.8); padding: 15px; border: 2px solid #0f0; border-radius: 8px; pointer-events: none; }
+        #wanted { color: #f00; font-size: 24px; font-weight: bold; }
+        #health-bar { width: 200px; height: 15px; background: #500; border: 1px solid #fff; margin-top: 5px; }
+        #health-inner { width: 100%; height: 100%; background: #f00; transition: 0.3s; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <strong>GTA 7 - MAFYA MODU</strong><br>
-    Hareket: Ok Tuşları / WASD<br>
-    Ateş: BOŞLUK (Space)<br>
-    Araba Bin/İn: E<br>
-    Durum: <span id="status">Yaya</span>
+    <div id="wanted">ARANMIYOR</div>
+    <strong>PARA: $<span id="money">0</span></strong><br>
+    SAĞLIK: <div id="health-bar"><div id="health-inner"></div></div>
+    SİLAH: <span id="weapon">Tabanca</span> (Space: Ateş)<br>
+    MOD: <span id="status">Yaya</span> (E: Araba Bin/İn)<br>
+    <small>Hareket: WASD / Ok Tuşları</small>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -24,111 +28,166 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const statusEl = document.getElementById('status');
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let player = { x: 100, y: 100, w: 20, h: 20, speed: 4, inCar: false, carIndex: -1 };
+// --- OYUN DEĞİŞKENLERİ ---
+let player = { x: 100, y: 100, w: 20, h: 20, speed: 4, inCar: false, carIndex: -1, health: 100, money: 0, wanted: 0 };
 let bullets = [];
 let npcs = [];
+let police = [];
 let cars = [
-    { x: 300, y: 200, w: 60, h: 30, color: 'yellow' },
-    { x: 500, y: 400, w: 60, h: 30, color: 'orange' }
+    { x: 400, y: 300, w: 60, h: 30, color: 'yellow', speed: 10 },
+    { x: 800, y: 100, w: 60, h: 30, color: 'cyan', speed: 12 },
+    { x: 200, y: 600, w: 60, h: 30, color: 'lime', speed: 9 }
+];
+let buildings = [
+    { x: 300, y: 100, w: 100, h: 150 },
+    { x: 600, y: 400, w: 200, h: 100 },
+    { x: 100, y: 400, w: 80, h: 80 }
 ];
 
-// NPC Oluştur
-for(let i=0; i<8; i++) {
-    npcs.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: 10, dead: false });
+// NPC Başlat
+function spawnNPC() {
+    return { x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: 10, dead: false, type: 'civilian' };
 }
+for(let i=0; i<10; i++) npcs.push(spawnNPC());
 
 let keys = {};
 window.addEventListener('keydown', e => {
     keys[e.code] = true;
     if(e.code === 'KeyE') toggleCar();
-    if(e.code === 'Space' && !player.inCar) shoot();
 });
 window.addEventListener('keyup', e => keys[e.code] = false);
 
 function toggleCar() {
     if(!player.inCar) {
         cars.forEach((car, index) => {
-            let dist = Math.hypot(player.x - car.x, player.y - car.y);
-            if(dist < 50) {
+            if(Math.hypot(player.x - car.x, player.y - car.y) < 50) {
                 player.inCar = true;
                 player.carIndex = index;
-                statusEl.innerText = "Direksiyonda";
+                document.getElementById('status').innerText = "Direksiyonda";
             }
         });
     } else {
         player.inCar = false;
-        player.y += 40; // Arabadan aşağı in
-        statusEl.innerText = "Yaya";
+        player.y += 50;
+        document.getElementById('status').innerText = "Yaya";
     }
 }
 
 function shoot() {
-    bullets.push({ x: player.x + 10, y: player.y + 10, vx: 10, vy: 0 });
+    bullets.push({ x: player.x + 10, y: player.y + 10, vx: 12, vy: 0 });
 }
 
+// --- GÜNCELLEME DÖNGÜSÜ ---
 function update() {
-    let speed = player.inCar ? 8 : 4;
-    
-    if(keys['ArrowUp'] || keys['KeyW']) player.y -= speed;
-    if(keys['ArrowDown'] || keys['KeyS']) player.y += speed;
-    if(keys['ArrowLeft'] || keys['KeyA']) player.x -= speed;
-    if(keys['ArrowRight'] || keys['KeyD']) player.x += speed;
+    if(keys['Space'] && !player.inCar && Math.random() < 0.1) shoot(); // Seri ateş
+
+    let currentSpeed = player.inCar ? cars[player.carIndex].speed : player.speed;
+    let oldX = player.x, oldY = player.y;
+
+    if(keys['ArrowUp'] || keys['KeyW']) player.y -= currentSpeed;
+    if(keys['ArrowDown'] || keys['KeyS']) player.y += currentSpeed;
+    if(keys['ArrowLeft'] || keys['KeyA']) player.x -= currentSpeed;
+    if(keys['ArrowRight'] || keys['KeyD']) player.x += currentSpeed;
+
+    // Bina Çarpışma Kontrolü
+    buildings.forEach(b => {
+        if(player.x < b.x + b.w && player.x + 20 > b.x && player.y < b.y + b.h && player.y + 20 > b.y) {
+            player.x = oldX; player.y = oldY;
+        }
+    });
 
     if(player.inCar) {
         cars[player.carIndex].x = player.x;
         cars[player.carIndex].y = player.y;
     }
 
-    // Mermileri hareket ettir ve NPC vurma kontrolü
+    // Mermi ve NPC Kontrolü
     bullets.forEach((b, bi) => {
         b.x += b.vx;
         npcs.forEach(n => {
             if(!n.dead && Math.hypot(b.x - n.x, b.y - n.y) < 15) {
                 n.dead = true;
+                player.money += 100;
+                player.wanted++;
                 bullets.splice(bi, 1);
             }
         });
     });
+
+    // Polis Sistemi
+    if(player.wanted > 5 && police.length < 3) {
+        police.push({ x: 0, y: 0, speed: 3.5 });
+    }
+
+    police.forEach((p, pi) => {
+        let dx = player.x - p.x;
+        let dy = player.y - p.y;
+        let dist = Math.hypot(dx, dy);
+        p.x += (dx/dist) * p.speed;
+        p.y += (dy/dist) * p.speed;
+
+        if(dist < 20) {
+            player.health -= 0.5;
+            if(player.health <= 0) location.reload(); // Öldün!
+        }
+    });
+
+    // UI Güncelle
+    document.getElementById('money').innerText = player.money;
+    document.getElementById('health-inner').style.width = player.health + "%";
+    document.getElementById('wanted').innerText = "⭐".repeat(Math.min(player.wanted/5, 5)) || "TEMİZ";
 }
 
+// --- ÇİZİM DÖNGÜSÜ ---
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#333";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Binalar
+    ctx.fillStyle = "#555";
+    buildings.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
 
     // Arabalar
     cars.forEach(car => {
         ctx.fillStyle = car.color;
         ctx.fillRect(car.x, car.y, car.w, car.h);
+        ctx.fillStyle = "black";
+        ctx.fillRect(car.x+5, car.y+5, 10, 5); // Camlar
     });
 
     // NPC'ler
     npcs.forEach(n => {
         if(!n.dead) {
             ctx.fillStyle = 'red';
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(n.x, n.y, 10, 0, Math.PI*2); ctx.fill();
         }
     });
 
+    // Polisler
+    police.forEach(p => {
+        ctx.fillStyle = 'blue';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI*2); ctx.fill();
+        // Tepe lambası efekti
+        ctx.fillStyle = Math.random() > 0.5 ? 'red' : 'blue';
+        ctx.fillRect(p.x-5, p.y-15, 10, 5);
+    });
+
     // Mermiler
-    ctx.fillStyle = 'white';
-    bullets.forEach(b => ctx.fillRect(b.x, b.y, 5, 2));
+    ctx.fillStyle = 'yellow';
+    bullets.forEach(b => ctx.fillRect(b.x, b.y, 8, 3));
 
     // Oyuncu
     if(!player.inCar) {
-        ctx.fillStyle = '#00f';
+        ctx.fillStyle = 'white';
         ctx.fillRect(player.x, player.y, player.w, player.h);
     }
 
-    requestAnimationFrame(() => {
-        update();
-        draw();
-    });
+    update();
+    requestAnimationFrame(draw);
 }
 
 draw();
