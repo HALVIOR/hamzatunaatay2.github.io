@@ -2,29 +2,30 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>RDR 2D: Halvior Ultimate</title>
+    <title>RDR 2D: Halvior Frontier</title>
     <style>
         body { margin: 0; overflow: hidden; background: #3d2b1f; font-family: 'Georgia', serif; }
-        #arayuz { position: absolute; top: 20px; left: 20px; color: #f4a460; background: rgba(30, 15, 0, 0.9); padding: 15px; border: 3px double #8b4513; border-radius: 5px; pointer-events: none; min-width: 200px; box-shadow: 5px 5px 15px #000; }
-        #alt-yazi { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60%; background: rgba(0,0,0,0.8); color: #fff; padding: 20px; border-top: 5px solid #ffcc00; display: none; text-align: center; font-size: 1.2em; border-radius: 10px; }
-        #onur-bar { width: 100%; height: 10px; background: #555; margin-top: 5px; border: 1px solid #fff; }
-        #onur-seviye { width: 50%; height: 100%; background: linear-gradient(to right, #8b0000, #ffffff, #00008b); transition: 0.5s; }
-        canvas { display: block; filter: sepia(0.4) contrast(1.1); }
+        #arayuz { position: absolute; top: 20px; left: 20px; color: #f4a460; background: rgba(30, 15, 0, 0.9); padding: 15px; border: 3px double #8b4513; border-radius: 5px; pointer-events: none; min-width: 250px; box-shadow: 5px 5px 15px #000; }
+        #diyalog-kutusu { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 70%; background: rgba(0,0,0,0.85); color: #fff; padding: 25px; border-left: 10px solid #8b0000; display: none; text-align: center; font-size: 1.4em; border-radius: 5px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        #onur-bar { width: 100%; height: 12px; background: #444; margin-top: 8px; border: 1px solid #fff; position: relative; }
+        #onur-imlec { width: 10px; height: 100%; background: #ffcc00; position: absolute; left: 50%; transition: 0.5s; }
+        canvas { display: block; filter: sepia(0.3) contrast(1.1); }
     </style>
 </head>
 <body>
 
 <div id="arayuz">
-    <div style="font-size: 20px; font-weight: bold; color: #ffcc00;">HALVIOR: KANUNSUZ</div>
-    💰 Altın: $<span id="para">150.00</span><br>
-    ❤️ Sağlık: <span id="can">100</span><br>
-    ⚖️ ONUR: <div id="onur-bar"><div id="onur-seviye"></div></div>
-    ⭐ Aranıyor: <span id="aranma">TEMİZ</span>
+    <div style="font-size: 22px; font-weight: bold; color: #ffcc00; text-align: center;">🤠 HALVIOR VAHŞİ BATIDA</div>
     <hr>
-    <div id="gorev" style="color: #0f0;">GÖREV: Şerifle konuş veya avlan.</div>
+    💰 Altın: $<span id="para">250.00</span><br>
+    ❤️ Sağlık: <span id="can">100</span><br>
+    ⚖️ ONUR: <div id="onur-bar"><div id="onur-imlec"></div></div>
+    ⭐ Aranıyor: <span id="aranma" style="color: #0f0;">TEMİZ</span>
+    <hr>
+    <small style="color: #bbb;">WASD: Hareket | F: Selam/Racon | E: At Bin/İn | Sol Click: Ateş</small>
 </div>
 
-<div id="alt-yazi"></div>
+<div id="diyalog-kutusu"></div>
 
 <canvas id="oyun"></canvas>
 
@@ -34,34 +35,34 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // --- OYUN AYARLARI ---
-    let oyuncu = { x: 1000, y: 1000, aci: 0, atUstünde: false, can: 100, para: 150, onur: 50, aranma: 0 };
+    let oyuncu = { x: 1000, y: 1000, aci: 0, atUstünde: false, can: 100, para: 250, onur: 50, aranma: 0 };
     let kamera = { x: 0, y: 0 };
-    let fare = { x: 0, y: 0 };
     let mermiler = [];
     let tuslar = {};
+    let fare = { x: 0, y: 0 };
 
-    // --- DÜNYA ELEMENTLERİ ---
+    // --- GENİŞLETİLMİŞ DİYALOG SİSTEMİ ---
+    const diyaloglar = {
+        dostca: ["Günaydın yabancı, buralarda yeni misin?", "Yolun açık olsun evlat, atın da pek yakışıklıymış.", "Şerif bugün huysuz, dikkat et de başın yanmasın."],
+        kiskirtici: ["Neye bakıyorsun? Ömründe hiç kovboy görmedin mi?", "Buralarda senin gibileri pek sevmezler, yoluna git.", "O elindeki silahı kılıfına sok, yoksa ben sokarım."],
+        at: ["Sakin ol kızım, sadece bir fırtına...", "Aferin sana, bizi yine kurtardın.", "Az kaldı, kasabada sana en iyi yulafı alacağım."],
+        dutch: ["Dutch: 'Bana güven Arthur! Bir büyük iş daha... Sonra Tahiti'de mango yiyeceğiz!'", "Halvior: 'Her seferinde aynı şeyi söylüyorsun ama hepimiz ölüyoruz!'"],
+        serif: ["Şerif: 'Bu kasabada senin gibi haydutlara yer yok! Ya hapsi boylarsın ya da toprağı!'"]
+    };
+
     const binalar = [
-        { x: 800, y: 700, w: 250, h: 300, isim: "SALOON", renk: "#4e342e" },
-        { x: 1300, y: 800, w: 200, h: 200, isim: "ŞERİF", renk: "#3e2723" },
-        { x: 500, y: 500, w: 150, h: 150, isim: "MARKET", renk: "#5d4037" }
+        { x: 700, y: 600, w: 300, h: 400, isim: "SALOON", renk: "#4b2c20" },
+        { x: 1300, y: 700, w: 200, h: 250, isim: "ŞERİF", renk: "#3e2723" }
     ];
-
-    let at = { x: 1100, y: 1100, can: 150, hiz: 0 };
 
     let npcler = [
-        { x: 1350, y: 850, isim: "Dutch", renk: "red", diyalog: "Sadece biraz daha para Arthur, sonra Tahitiii!", tip: "dost" },
-        { x: 1400, y: 950, isim: "Şerif", renk: "blue", diyalog: "Gözüm üzerinde Halvior, uslu dur.", tip: "dost" },
-        { x: 1200, y: 1500, isim: "O'Driscoll", renk: "orange", diyalog: "Öleceksin kovboy!", tip: "dusman", can: 50 }
+        { x: 1350, y: 800, isim: "Şerif", renk: "blue", tip: "serif" },
+        { x: 850, y: 750, isim: "Dutch", renk: "red", tip: "dutch" },
+        { x: 1100, y: 1400, isim: "Yabancı", renk: "green", tip: "halk" }
     ];
 
-    let hayvanlar = [
-        { x: 600, y: 600, tip: "Geyik", can: 20, oldu: false },
-        { x: 1500, y: 1200, tip: "Bizon", can: 50, oldu: false }
-    ];
+    let at = { x: 1150, y: 1150 };
 
-    // --- KONTROLLER ---
     window.onmousemove = (e) => { fare.x = e.clientX + kamera.x; fare.y = e.clientY + kamera.y; };
     window.onmousedown = () => { if(!oyuncu.atUstünde) atesEt(); };
     window.onkeydown = (e) => { 
@@ -73,109 +74,93 @@
 
     function atBinIn() {
         let d = Math.hypot(oyuncu.x - at.x, oyuncu.y - at.y);
-        if(d < 70) oyuncu.atUstünde = !oyuncu.atUstünde;
+        if(d < 70) {
+            oyuncu.atUstünde = !oyuncu.atUstünde;
+            if(!oyuncu.atUstünde) diyalogGoster(diyaloglar.at[Math.floor(Math.random()*3)]);
+        }
     }
 
     function atesEt() {
         let aci = Math.atan2(fare.y - oyuncu.y, fare.x - oyuncu.x);
-        mermiler.push({ x: oyuncu.x, y: oyuncu.y, vx: Math.cos(aci)*20, vy: Math.sin(aci)*20, sahip: "oyuncu" });
+        mermiler.push({ x: oyuncu.x, y: oyuncu.y, vx: Math.cos(aci)*20, vy: Math.sin(aci)*20 });
+        diyalogGoster("Mezarını kazmaya başla, bu mermi adını taşıyor!");
     }
 
     function etkilesim() {
-        const box = document.getElementById('alt-yazi');
-        let d = 100;
-        let mesaj = "Halvior: 'Racon bitti, işine bak!'";
+        let yakinNPC = npcler.find(n => Math.hypot(oyuncu.x - n.x, oyuncu.y - n.y) < 80);
+        let mesaj = "";
 
-        npcler.forEach(n => {
-            if(Math.hypot(oyuncu.x - n.x, oyuncu.y - n.y) < 70) {
-                mesaj = n.isim + ": '" + n.diyalog + "'";
-                oyuncu.onur += 2; // Selamlaşmak onur verir
+        if(yakinNPC) {
+            if(yakinNPC.tip === "dutch") mesaj = diyaloglar.dutch[Math.floor(Math.random()*2)];
+            else if(yakinNPC.tip === "serif") mesaj = diyaloglar.serif[0];
+            else {
+                mesaj = oyuncu.onur > 40 ? diyaloglar.dostca[Math.floor(Math.random()*3)] : diyaloglar.kiskirtici[Math.floor(Math.random()*3)];
+                oyuncu.onur += 2;
             }
-        });
+        } else if(oyuncu.atUstünde) {
+            mesaj = diyaloglar.at[Math.floor(Math.random()*3)];
+        } else {
+            mesaj = "Halvior: 'Kimse yok mu kime racon kesek?'";
+        }
+        diyalogGoster(mesaj);
+    }
 
-        box.innerText = mesaj;
+    function diyalogGoster(metin) {
+        const box = document.getElementById('diyalog-kutusu');
+        box.innerText = metin;
         box.style.display = 'block';
-        setTimeout(() => box.style.display = 'none', 3000);
-        guncelleUI();
+        setTimeout(() => box.style.display = 'none', 3500);
     }
 
-    function guncelleUI() {
-        document.getElementById('para').innerText = oyuncu.para.toFixed(2);
-        document.getElementById('onur-seviye').style.width = oyuncu.onur + "%";
-        document.getElementById('aranma').innerText = oyuncu.aranma > 0 ? "ARANIYOR ⭐️" : "TEMİZ";
-        document.getElementById('can').innerText = Math.ceil(oyuncu.can);
-    }
-
-    // --- ÇİZİM FONKSİYONLARI ---
-    function cizKovboy(x, y, aci, renk, isim) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(aci);
-        ctx.fillStyle = renk; ctx.fillRect(-15, -15, 30, 30); // Vücut
-        ctx.fillStyle = "#000"; ctx.fillRect(-20, -18, 40, 6); // Şapka
-        ctx.fillStyle = "#fff"; ctx.fillRect(10, -10, 5, 5); ctx.fillRect(10, 5, 5, 5); // Gözler
-        ctx.restore();
-        ctx.fillStyle = "white"; ctx.fillText(isim, x - 20, y - 25);
-    }
-
-    function dongu() {
+    function ciz() {
         ctx.setTransform(1,0,0,1,0,0);
-        ctx.fillStyle = "#c2a385"; ctx.fillRect(0, 0, canvas.width, canvas.height); // Toprak zemin
+        ctx.fillStyle = "#c2a385"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.translate(-kamera.x, -kamera.y);
 
-        // Binalar
+        // Binalar ve Çevre
         binalar.forEach(b => {
             ctx.fillStyle = b.renk; ctx.fillRect(b.x, b.y, b.w, b.h);
-            ctx.strokeStyle = "#222"; ctx.lineWidth = 5; ctx.strokeRect(b.x, b.y, b.w, b.h);
-            ctx.fillStyle = "yellow"; ctx.fillRect(b.x+20, b.y+40, 30, 30); // Pencere
-        });
-
-        // Hayvanlar
-        hayvanlar.forEach(h => {
-            if(!h.oldu) {
-                ctx.fillStyle = "#5d4037"; ctx.beginPath(); ctx.arc(h.x, h.y, 20, 0, 7); ctx.fill();
-                ctx.fillStyle = "white"; ctx.fillText(h.tip, h.x - 15, h.y - 25);
-            }
+            ctx.fillStyle = "yellow"; ctx.fillRect(b.x+20, b.y+50, 40, 40); // Pencere
+            ctx.fillStyle = "#fff"; ctx.fillText(b.isim, b.x + b.w/2 - 20, b.y + 30);
         });
 
         // At
         ctx.fillStyle = "#6d4c41"; ctx.fillRect(at.x - 40, at.y - 20, 80, 40);
-        ctx.fillStyle = "#3e2723"; ctx.fillRect(at.x + 30, at.y - 15, 20, 15); // Kafa
+        ctx.fillStyle = "#000"; ctx.fillRect(at.x + 30, at.y - 15, 20, 15);
 
-        // Oyuncu ve NPC'ler
+        // Karakterler
         npcler.forEach(n => {
-            if(n.can === undefined || n.can > 0)
-                cizKovboy(n.x, n.y, 0, n.renk, n.isim);
+            ctx.fillStyle = n.renk; ctx.fillRect(n.x - 15, n.y - 15, 30, 30);
+            ctx.fillStyle = "#000"; ctx.fillRect(n.x - 20, n.y - 18, 40, 6); // Şapka
+            ctx.fillStyle = "#fff"; ctx.fillText(n.isim, n.x - 15, n.y - 25);
         });
 
         if(!oyuncu.atUstünde) {
-            oyuncu.aci = Math.atan2(fare.y - oyuncu.y, fare.x - oyuncu.x);
-            cizKovboy(oyuncu.x, oyuncu.y, oyuncu.aci, "#2196f3", "HALVIOR");
+            ctx.save();
+            ctx.translate(oyuncu.x, oyuncu.y);
+            ctx.rotate(Math.atan2(fare.y - oyuncu.y, fare.x - oyuncu.x));
+            ctx.fillStyle = "#2196f3"; ctx.fillRect(-15, -15, 30, 30);
+            ctx.fillStyle = "#000"; ctx.fillRect(-20, -18, 40, 6);
+            ctx.restore();
         } else {
             at.x = oyuncu.x; at.y = oyuncu.y;
         }
 
-        // Mermiler ve Çarpışma
+        // Mermiler
         mermiler.forEach((m, i) => {
             m.x += m.vx; m.y += m.vy;
-            ctx.fillStyle = "yellow"; ctx.fillRect(m.x, m.y, 10, 4);
-
-            // Hayvan vurma
-            hayvanlar.forEach(h => {
-                if(!h.oldu && Math.hypot(m.x - h.x, m.y - h.y) < 30) {
-                    h.oldu = true; oyuncu.para += 20; mermiler.splice(i, 1);
-                }
-            });
-
-            // NPC vurma (Suç)
+            ctx.fillStyle = "yellow"; ctx.fillRect(m.x, m.y, 10, 3);
             npcler.forEach(n => {
                 if(Math.hypot(m.x - n.x, m.y - n.y) < 30) {
-                    oyuncu.onur -= 10; oyuncu.aranma = 1; mermiler.splice(i, 1);
+                    oyuncu.onur -= 5;
+                    oyuncu.aranma = 1;
+                    mermiler.splice(i, 1);
+                    diyalogGoster("VURULDU! Onur Kaybedildi!");
                 }
             });
         });
 
-        // Hareket ve Kamera
+        // Güncellemeler
         let hiz = oyuncu.atUstünde ? 10 : 5;
         if(tuslar['KeyW']) oyuncu.y -= hiz;
         if(tuslar['KeyS']) oyuncu.y += hiz;
@@ -185,10 +170,14 @@
         kamera.x = oyuncu.x - canvas.width/2;
         kamera.y = oyuncu.y - canvas.height/2;
 
-        guncelleUI();
-        requestAnimationFrame(dongu);
+        document.getElementById('onur-imlec').style.left = oyuncu.onur + "%";
+        document.getElementById('para').innerText = oyuncu.para.toFixed(2);
+        document.getElementById('aranma').innerText = oyuncu.aranma > 0 ? "⭐️ ARANIYOR ⭐️" : "TEMİZ";
+        document.getElementById('aranma').style.color = oyuncu.aranma > 0 ? "red" : "#0f0";
+
+        requestAnimationFrame(ciz);
     }
-    dongu();
+    ciz();
 </script>
 </body>
 </html>
