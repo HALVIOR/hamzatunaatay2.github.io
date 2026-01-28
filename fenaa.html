@@ -2,27 +2,25 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GTA 7: Definitive 2D Edition</title>
+    <title>GTA 7 - Vice City 2D</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #222; font-family: 'Segoe UI', sans-serif; }
-        #ui { position: absolute; top: 20px; left: 20px; color: white; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 10px; border: 2px solid #555; pointer-events: none; }
-        #dialog { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60%; background: rgba(0,0,0,0.9); color: #0f0; padding: 20px; border: 2px solid #0f0; border-radius: 5px; display: none; }
-        #mission { color: #ffff00; font-weight: bold; font-size: 1.2em; }
-        #health { width: 200px; height: 10px; background: #300; border: 1px solid #fff; }
-        #health-bar { width: 100%; height: 100%; background: #f00; }
+        body { margin: 0; overflow: hidden; background: #2d0031; font-family: 'Courier New', monospace; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #0ff; background: rgba(255, 0, 128, 0.2); padding: 15px; border: 2px solid #f0f; border-radius: 5px; box-shadow: 0 0 10px #f0f; pointer-events: none; }
+        #dialog { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70%; background: rgba(0,0,0,0.9); color: #ff00ff; padding: 20px; border: 3px solid #00ffff; border-radius: 10px; display: none; text-align: center; font-size: 1.5em; font-weight: bold; }
+        #stats { font-size: 1.2em; text-shadow: 2px 2px #000; }
         canvas { display: block; cursor: crosshair; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div id="mission">GÖREV: Tony'nin yanına git (Kırmızı NPC)</div>
-    <div id="stats">💰 Para: $<span id="money">0</span> | ⭐ <span id="wanted">0</span></div>
-    SAĞLIK: <div id="health"><div id="health-bar"></div></div>
-    <small>WASD: Hareket | Mouse: Nişan & Ateş | E: Bin/İn | F: Konuş</small>
+    <div id="stats">🌴 VICE CITY | PARA: $<span id="money">0</span> | ⭐ <span id="wanted">0</span></div>
+    <div id="mission" style="color: #ffff00;">GÖREV: Şehirde racon kes (R Tuşu)!</div>
+    <div style="margin-top:10px; background:#444; width:200px; height:10px;"><div id="hp" style="width:100%; height:100%; background:#f0f;"></div></div>
+    <small style="color: #fff;">WASD: Hareket | Mouse: Ateş | E: Bin/İn | F: Konuş | R: RACON KES</small>
 </div>
 
-<div id="dialog">Tony: "Hey evlat! Şu karşıdaki sarı arabayı çal ve limana götür."</div>
+<div id="dialog"></div>
 
 <canvas id="gameCanvas"></canvas>
 
@@ -32,114 +30,89 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// --- OYUN AYARLARI ---
-let player = { x: 500, y: 500, angle: 0, speed: 0, maxSpeed: 4, inCar: false, car: null, health: 100, money: 0, wanted: 0 };
+let player = { x: 1000, y: 1000, angle: 0, speed: 0, maxSpeed: 5, inCar: false, car: null, money: 500, health: 100 };
 let mouse = { x: 0, y: 0 };
 let bullets = [];
-let npcs = [{ x: 600, y: 400, angle: 0, color: 'red', name: 'Tony', dialog: 'Tony: "Daha ne bekliyorsun? Çal şu arabayı!"', missionTrigger: true }];
-let cars = [{ x: 800, y: 300, angle: 0, speed: 0, color: '#f1c40f', locked: false }];
-let buildings = [{x: 200, y: 200, w: 150, h: 150, color: '#444'}];
 let camera = { x: 0, y: 0 };
-let currentMission = 0;
 
-// --- GİRDİLER ---
+// --- VICE CITY HARİTASI ---
+let buildings = [];
+for(let i=0; i<15; i++) {
+    buildings.push({ x: i*300, y: 600, w: 150, h: 250, color: '#301934' }); // Sahil boyu binalar
+    buildings.push({ x: i*300, y: 1400, w: 200, h: 100, color: '#1a1a1a' });
+}
+
+let npcs = [];
+for(let i=0; i<25; i++) {
+    npcs.push({ 
+        x: Math.random()*4000, y: Math.random()*2000, 
+        color: ['#ff00ff', '#00ffff', '#ffff00'][Math.floor(Math.random()*3)],
+        dialog: "Sıkıysa ateş et evlat!",
+        dead: false 
+    });
+}
+
+let cars = [
+    { x: 1200, y: 1100, angle: 0, speed: 0, color: '#ff00ff', name: 'Infernus' },
+    { x: 800, y: 1100, angle: 0, speed: 0, color: '#ffffff', name: 'White Stallion' },
+    { x: 1500, y: 1300, angle: 1.5, speed: 0, color: '#00ffff', name: 'Cheetah' }
+];
+
+let raconlar = [
+    "Azdan az, çoktan çok gider!",
+    "Burası Vice City, burada güneş sadece bizim için batar.",
+    "Racon kesmiyoruz, kafa kesiyoruz koçum!",
+    "Ölmek sorun değil de, gömülmek mesele.",
+    "Bizim adımız belli, raconumuz belli!"
+];
+
+// --- KONTROLLER ---
 let keys = {};
 window.onkeydown = e => { 
     keys[e.code] = true; 
     if(e.code === 'KeyE') toggleCar();
-    if(e.code === 'KeyF') talkToNPC();
+    if(e.code === 'KeyR') kesRacon();
 };
 window.onkeyup = e => keys[e.code] = false;
 window.onmousemove = e => { mouse.x = e.clientX + camera.x; mouse.y = e.clientY + camera.y; };
 window.onmousedown = () => { if(!player.inCar) shoot(); };
 
 function toggleCar() {
-    if(player.inCar) {
-        player.inCar = false;
-        player.car.speed = 0;
-        player.y += 60;
-        player.car = null;
-    } else {
+    if(player.inCar) { player.inCar = false; player.y += 70; player.car = null; }
+    else {
         cars.forEach(c => {
             if(Math.hypot(player.x - c.x, player.y - c.y) < 60) {
-                player.inCar = true;
-                player.car = c;
-                if(currentMission === 1) nextMission();
+                player.inCar = true; player.car = c;
             }
         });
     }
 }
 
-function talkToNPC() {
-    npcs.forEach(n => {
-        if(Math.hypot(player.x - n.x, player.y - n.y) < 50) {
-            const box = document.getElementById('dialog');
-            box.innerText = n.dialog;
-            box.style.display = 'block';
-            setTimeout(() => box.style.display = 'none', 3000);
-            if(currentMission === 0) nextMission();
-        }
-    });
-}
-
-function nextMission() {
-    currentMission++;
-    const m = document.getElementById('mission');
-    if(currentMission === 1) m.innerText = "GÖREV: Sarı arabayı çal!";
-    if(currentMission === 2) m.innerText = "GÖREV: Arabayla uzaklaş (Sürüş Testi)!";
+function kesRacon() {
+    const box = document.getElementById('dialog');
+    box.innerText = raconlar[Math.floor(Math.random()*raconlar.length)];
+    box.style.display = 'block';
+    setTimeout(() => box.style.display = 'none', 3000);
 }
 
 function shoot() {
     let angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-    bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15 });
+    bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle)*18, vy: Math.sin(angle)*18 });
 }
 
-// --- FİZİK VE ÇİZİM ---
-function drawPlayer(x, y, angle, color) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    // Vücut
-    ctx.fillStyle = color;
-    ctx.fillRect(-15, -15, 30, 30);
-    // Gözler (Modelleme)
-    ctx.fillStyle = "white";
-    ctx.fillRect(5, -10, 5, 5);
-    ctx.fillRect(5, 5, 5, 5);
-    ctx.restore();
-}
-
-function drawCar(car) {
-    ctx.save();
-    ctx.translate(car.x, car.y);
-    ctx.rotate(car.angle);
-    // Gövde
-    ctx.fillStyle = car.color;
-    ctx.fillRect(-40, -25, 80, 50);
-    // Camlar
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(-10, -20, 30, 40);
-    // Farlar
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(35, -20, 5, 10);
-    ctx.fillRect(35, 10, 5, 10);
-    ctx.restore();
-}
-
+// --- GÜNCELLEME VE ÇİZİM ---
 function update() {
     if(player.inCar) {
-        // ARABA FİZİĞİ
         let c = player.car;
-        if(keys['KeyW']) c.speed += 0.2;
-        if(keys['KeyS']) c.speed -= 0.1;
-        c.speed *= 0.98; // Sürtünme
-        if(keys['KeyA']) c.angle -= 0.05 * (c.speed/5);
-        if(keys['KeyD']) c.angle += 0.05 * (c.speed/5);
+        if(keys['KeyW']) c.speed += 0.25;
+        if(keys['KeyS']) c.speed -= 0.15;
+        c.speed *= 0.97;
+        if(keys['KeyA']) c.angle -= 0.06;
+        if(keys['KeyD']) c.angle += 0.06;
         c.x += Math.cos(c.angle) * c.speed;
         c.y += Math.sin(c.angle) * c.speed;
-        player.x = c.x; player.y = c.y; player.angle = c.angle;
+        player.x = c.x; player.y = c.y;
     } else {
-        // YAYA HAREKETİ
         if(keys['KeyW']) player.y -= player.maxSpeed;
         if(keys['KeyS']) player.y += player.maxSpeed;
         if(keys['KeyA']) player.x -= player.maxSpeed;
@@ -152,37 +125,78 @@ function update() {
 
     bullets.forEach((b, i) => {
         b.x += b.vx; b.y += b.vy;
-        if(Math.abs(b.x) > 5000) bullets.splice(i, 1);
+        npcs.forEach(n => {
+            if(!n.dead && Math.hypot(b.x - n.x, b.y - n.y) < 20) {
+                n.dead = true; player.money += 250;
+            }
+        });
     });
+    document.getElementById('money').innerText = player.money;
 }
 
-function loop() {
+function draw() {
     ctx.setTransform(1,0,0,1,0,0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#1a0033"; // Gece mavisi zemin
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.translate(-camera.x, -camera.y);
 
-    // Yer Izgarası (Harita hissi için)
-    ctx.strokeStyle = "#333";
-    for(let i=0; i<3000; i+=100) {
+    // Yol ve Izgara
+    ctx.strokeStyle = "#ff00ff";
+    ctx.lineWidth = 0.5;
+    for(let i=0; i<4000; i+=200) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 3000); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(3000, i); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(4000, i); ctx.stroke();
     }
 
-    buildings.forEach(b => { ctx.fillStyle = b.color; ctx.fillRect(b.x, b.y, b.w, b.h); });
-    cars.forEach(drawCar);
-    npcs.forEach(n => drawPlayer(n.x, n.y, n.angle, n.color));
-    
-    // Mermiler
-    ctx.fillStyle = "yellow";
-    bullets.forEach(b => ctx.fillRect(b.x, b.y, 10, 4));
+    // Binalar (Neon Işıklı)
+    buildings.forEach(b => {
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+        ctx.strokeStyle = "#0ff";
+        ctx.strokeRect(b.x, b.y, b.w, b.h);
+        // Pencereler
+        ctx.fillStyle = "yellow";
+        for(let py=b.y+20; py<b.y+b.h; py+=40) {
+            ctx.fillRect(b.x+20, py, 10, 10);
+            ctx.fillRect(b.x+b.w-30, py, 10, 10);
+        }
+    });
 
-    if(!player.inCar) drawPlayer(player.x, player.y, player.angle, "#3498db");
+    // Arabalar
+    cars.forEach(c => {
+        ctx.save();
+        ctx.translate(c.x, c.y); ctx.rotate(c.angle);
+        ctx.fillStyle = c.color;
+        ctx.fillRect(-45, -25, 90, 50);
+        ctx.fillStyle = "black"; ctx.fillRect(-10, -20, 35, 40);
+        ctx.restore();
+    });
+
+    // NPC'ler
+    npcs.forEach(n => {
+        if(!n.dead) {
+            ctx.fillStyle = n.color;
+            ctx.beginPath(); ctx.arc(n.x, n.y, 15, 0, Math.PI*2); ctx.fill();
+        }
+    });
+
+    // Oyuncu
+    if(!player.inCar) {
+        ctx.save();
+        ctx.translate(player.x, player.y); ctx.rotate(player.angle);
+        ctx.fillStyle = "#fff"; ctx.fillRect(-15, -15, 30, 30);
+        ctx.fillStyle = "#000"; ctx.fillRect(8, -10, 5, 5); ctx.fillRect(8, 5, 5, 5);
+        ctx.restore();
+    }
+
+    // Mermiler
+    ctx.fillStyle = "#0ff";
+    bullets.forEach(b => ctx.fillRect(b.x, b.y, 12, 4));
 
     update();
-    requestAnimationFrame(loop);
+    requestAnimationFrame(draw);
 }
-
-loop();
+draw();
 </script>
 </body>
 </html>
