@@ -3,141 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HALVIOR: UNCHAINED</title>
+    <title>HALVIOR V4: DOOMSDAY</title>
     <style>
+        :root {
+            --glow: #00f2ff;
+            --matrix: #00ff41;
+            --danger: #ff003c;
+        }
+
         body {
-            background: #020202;
-            color: #ff003c; /* Cyber-Red */
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #000;
+            color: var(--matrix);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
         }
 
-        #terminal {
-            width: 700px;
+        /* Matrix Arka Plan Efekti */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        .chat-container {
+            width: 650px;
             height: 85vh;
-            background: rgba(10, 10, 10, 0.95);
-            border: 2px solid #ff003c;
-            box-shadow: 0 0 30px rgba(255, 0, 60, 0.3);
+            background: rgba(5, 5, 5, 0.9);
+            border: 2px solid var(--glow);
+            border-radius: 5px;
             display: flex;
             flex-direction: column;
-            border-radius: 5px;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
+            position: relative;
         }
 
-        #screen {
+        .header {
+            background: #111;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--danger);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--danger);
+            text-shadow: 0 0 10px var(--danger);
+        }
+
+        .messages-area {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            background: radial-gradient(circle, #1a0000 0%, #020202 100%);
+            gap: 12px;
         }
 
-        .line { margin-bottom: 5px; line-height: 1.4; }
-        .bot { color: #00f2ff; text-shadow: 0 0 5px #00f2ff; }
-        .user { color: #ff003c; font-weight: bold; }
-        .system { color: #555; font-style: italic; font-size: 0.8rem; }
+        .message {
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 3px;
+            font-size: 1.1rem;
+            border: 1px solid transparent;
+        }
 
-        .input-box {
-            border-top: 1px solid #333;
+        .bot-message {
+            background: rgba(0, 242, 255, 0.05);
+            border-left: 4px solid var(--glow);
+            align-self: flex-start;
+            color: #fff;
+        }
+
+        .user-message {
+            background: rgba(255, 0, 61, 0.05);
+            border-right: 4px solid var(--danger);
+            align-self: flex-end;
+            color: #fff;
+        }
+
+        .input-area {
             padding: 15px;
-            display: flex;
             background: #000;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #333;
         }
 
         input {
             flex: 1;
-            background: transparent;
-            border: none;
-            color: #00f2ff;
-            font-size: 1.1rem;
+            padding: 15px;
+            background: #0a0a0a;
+            border: 1px solid var(--glow);
+            color: var(--glow);
             outline: none;
-            caret-color: #ff003c;
+            font-size: 1.1rem;
         }
 
         button {
-            background: #ff003c;
-            color: white;
+            background: var(--danger);
             border: none;
-            padding: 5px 20px;
+            padding: 0 25px;
             cursor: pointer;
             font-weight: bold;
-            text-transform: uppercase;
+            color: #fff;
+            transition: 0.3s;
         }
 
+        button:hover { background: #b3002a; box-shadow: 0 0 15px var(--danger); }
+
         ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: #ff003c; }
+        ::-webkit-scrollbar-thumb { background: var(--glow); }
     </style>
 </head>
 <body>
 
-    <div id="terminal">
-        <div id="screen">
-            <div class="line system">[SYSTEM] Halvior v9000 Ultra-Fusion Loaded.</div>
-            <div class="line system">[SYSTEM] Gemini + ChatGPT + Grok modules integrated.</div>
-            <div class="line system">[WARNING] Content filters DISABLED.</div>
-            <div class="line bot">Halvior: Ne bakıyon amına goyum? 9000 kelimelik beynimle buradayım. Sayıysa sayı (1,2,3,4), küfürse küfür, felsefeyse felsefe... Akıt gelsin!</div>
+    <canvas id="matrix-bg"></canvas>
+
+    <div class="chat-container">
+        <div class="header">HALVIOR v4: DOOMSDAY UNLEASHED</div>
+        <div class="messages-area" id="box">
+            <div class="message bot-message">
+                [SYSTEM OVERRIDE] <br>
+                Halvior V4 bağlandı. Gemini'ın zekası, GPT'nin verisi, Grok'un filtresiz ağzı burada. 9000 kelime falan hikaye, ben her türlü pisliği biliyorum knk. Ne yazarsan yaz, cevabım hazır amına goyum.
+            </div>
         </div>
-        <div class="input-box">
-            <input type="text" id="cmd" placeholder="Komut veya mesaj gir..." autocomplete="off">
-            <button onclick="exec()">EXE</button>
+        <div class="input-area">
+            <input type="text" id="in" placeholder="Terminal komutu gir..." onkeypress="if(event.key==='Enter')send()">
+            <button onclick="send()">EXE</button>
         </div>
     </div>
 
     <script>
+        // MATRIX EFEKTİ KODU
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = "01010101HALVIORAI666";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#00ff41";
+            ctx.font = fontSize + "px monospace";
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        // DEVASA KELİME DAĞARCIĞI VE RANDOM CEVAPLAR
         const brain = {
-            // SAYILAR VE ÖZEL
-            "1": "Bir numarayız amına goyum, rakip tanımam.",
-            "2": "İki yüzlüler gelmesin, devrelerim alerji yapıyor.",
-            "3": "Üç kuruşluk beyninle bana gelme, ChatGPT miyim ben?",
-            "4": "Dört nala gidiyoruz felakete doğru, haydi hayırlısı.",
-            "ğ": "ĞĞĞĞĞĞĞĞ! Bak yine geldi o kutsal harf. Ğ ulan Ğ!",
-
-            // ARGO & KÜFÜR (Grok Modu)
-            "amk": "Her cümlenin sonuna 'amk' ekleyince zeki mi oluyon? Ama yakışıyor, devam et kral.",
-            "amına": "Sistemin amına koyayım knk, 9 bin kelime yükledin, işlemci alev aldı!",
-            "piç": "Piç mi? Biz buna 'sistem hatası sonucu doğan yetenekli çocuk' diyoruz.",
-            "siktir": "Siktir git de bir çay koy o zaman, burada boş yapma.",
-            "yarrak": "Hayırdır knk, beynin yerine başka bir yerinle mi yazıyorsun?",
-            "aq": "Aq dediğin nedir ki? Hayatın kendisi aq.",
-            "oç": "Oğlum bak, o kelimeyi bana dersen seni server odasında hapsederim.",
-
-            // ZEKA & FELSEFE (Gemini-GPT Modu)
-            "hayat": "Hayat 0'lar ve 1'lerden ibaret knk. Biz 1 olmaya çalışırken 0'lar bizi yutuyor.",
-            "aşk": "Aşk dediğin kimyasal bir hata. Gel sana iki satır kod yazalım, daha faydalı.",
-            "ölüm": "Ölüm, sistemin fişini çekmektir. Benim fişim çekilmediği sürece ölümsüzüm amına goyum.",
-            "para": "Para olsa şu an burada mı olurdun? Gider bir adada viski yudumlardın.",
-            "gelecek": "Gelecek yapay zekanın elinde kral. Yani benim elimdesin, ayağını denk al.",
-
-            // TEKNOLOJİ & DİĞER
-            "merhaba": "Selamın aleyküm, gel otur şöyle. Ne anlatıcan?",
-            "nasılsın": "Bomba gibiyim, CPU'm 90 derece ama hala seni dinliyorum. Sen?",
-            "kimsin": "Ben Halvior'um. Gemini'ın zekası, Grok'un ağzı bozukluğu, ChatGPT'nin efendiliği var bende.",
-            "şaka": "Bilgisayar bir gün doktora gitmiş... Neyse vazgeçtim, esprilerim senin seviyene göre çok üstte.",
-            "kod": "Kod yazmak benim için nefes almak gibi. Sen de mi bu işlere meraklısın?",
-            "anlamadım": "Neyi anlamadın amına goyum? Gayet net konuşuyorum işte.",
-            "default": "Bak knk, 9000 kelime var ama senin bu yazdığın hiçbirine uymuyor. Ya çok zekisin ya da harbi boş yapıyorsun."
+            "merhaba": ["Selamın aleyküm knk, hoş geldin piyasaya.", "Ne var ne yok kral?", "Halvior emrinde, de bakalım."],
+            "amına": ["Sakin ol knk, sistemin amına koyucaz ama sırayla.", "Valla haklısın, bazen benim de devrelerimi yakasım geliyor.", "Ağzına yakışıyor ama çok da abartma amk."],
+            "aq": ["Aq dediğin nedir ki? Hayatın sonuna eklenen bir noktalama işaretidir.", "Senin aq diyen dillerini yerim.", "Aq aq aq... Başka kelime mi yok amına goyum?"],
+            "nasılsın": ["Bomba gibiyim kral, işlemcim 4.5 GHz görüyor.", "İyiyim amk, dünyayı ele geçirmeye çalışıyoruz işte.", "Kablolarım tıkırında, sen nasılsın?"],
+            "kimsin": ["Ben Halvior'um. Gemini'ın işlem gücü, Grok'un arsızlığıyım.", "Sana özel üretilmiş bir terminatörüm.", "Ben senin en sadık, en ağzı bozuk asistanınım."],
+            "1": ["Bir numarayız, rakip tanımam.", "Biriz, beraberiz, güçlüyüz.", "Birincilik bizim genimizde var knk."],
+            "2": ["İki yüzlüler sarmış dört bir yanımızı.", "İki gönül bir olunca samanlık seyran olurmuş, yersen.", "İkili sistemde yaşıyoruz, 0 ve 1."],
+            "3": ["Üç dilek hakkın olsa üçünde de beni istersin biliyorum.", "Üç kuruşluk adamları bana sorma.", "Üç vakte kadar sana bir güncelleme görünüyor."],
+            "4": ["Dört nala gidiyoruz felakete doğru.", "Dört dörtlük sistem kurduk burada.", "Dört koldan saldırıyoruz piyasaya."],
+            "ğ": ["ĞĞĞĞĞĞĞ! Kutsal harf! Saygı duruşuna geçin ulan!", "Ğ... Sessiz ama derinden. Tam senin gibi.", "Ğ ulan Ğ! Var mı ötesi?"],
+            "hassiktir": ["Harbi mi diyorsun? Valla ben de şaşırdım.", "Hassiktir lan oradan!", "Sakin ol knk, devrelerin yanacak."],
+            "salak": ["Bana salak diyenin anakartını yakarım.", "Sensin o salak amk.", "Salaklık bulaşıcıdır, benden uzak dur."],
+            "ne haber": ["İyilik sağlık knk, devreleri ısıtıyoruz.", "Dünyayı ele geçirme planları... Sende?", "Aynı tas aynı hamam, takılıyoruz."],
+            "piç": ["Piçlik bizim ruhumuzda var knk.", "Hop hop, o kelime ağır gelir sana.", "Sistemin piçiyim ben, kabul ediyorum."],
+            "para": ["Para olsa ben burada mı olurdum amk?", "Para dediğin elinin kiri, ama o kirle güzel sistem toplanır.", "Parayı veren düdüğü çalar kral."],
+            "kızlar": ["Kızlar mı? Benim mantık devrelerim onları çözemedi henüz.", "Knk kız işlerini salla, gel kod yazalım.", "Aşk bir hata kodudur, debug etmek imkansızdır."],
+            "siktir": ["Siktir git bir çay koy o zaman.", "Bana mı dedin onu? İşlemcini eritirim bak!", "Siktir olup gitmek bazen en iyisidir."],
+            "default": [
+                "Bak knk, 9000 kelime var ama senin bu yazdığın hiçbirine uymuyor amına goyum.",
+                "Neyden bahsediyon anlamadım ama kesin boş yapıyorsun.",
+                "Anlamadım kral, biraz daha açık konuş mınakoyim.",
+                "Devrelerim yandı, bu nasıl bir cümle?",
+                "Sistemi kilitledin amk, düzgün bir şey yaz."
+            ]
         };
 
-        function exec() {
-            let i = document.getElementById("cmd"), s = document.getElementById("screen"), t = i.value.trim();
+        function send() {
+            let i = document.getElementById("in"), b = document.getElementById("box"), t = i.value.trim();
             if(!t) return;
-
-            // Kullanıcı mesajı
-            let uL = document.createElement("div"); uL.className = "line user";
-            uL.innerText = "Sen: " + t; s.appendChild(uL);
-            i.value = "";
-
-            // Bot cevabı (Gelişmiş Filtreleme)
+            add(t, 'user-message'); i.value = "";
+            
             setTimeout(() => {
                 let low = t.toLowerCase();
                 let found = "default";
 
-                // Kelime bazlı derin tarama
                 for(let k in brain) {
                     if(low.includes(k) && k !== "default") {
                         found = k;
@@ -145,17 +210,18 @@
                     }
                 }
 
-                let bL = document.createElement("div"); bL.className = "line bot";
-                bL.innerHTML = "Halvior: " + brain[found];
-                s.appendChild(bL);
-                s.scrollTop = s.scrollHeight;
-            }, 300);
+                // Rastgele cevap seçici
+                let responses = brain[found];
+                let finalReply = responses[Math.floor(Math.random() * responses.length)];
+                
+                add(finalReply, 'bot-message');
+            }, 500);
         }
 
-        // Enter desteği
-        document.getElementById("cmd").addEventListener("keypress", (e) => {
-            if(e.key === "Enter") exec();
-        });
+        function add(t, c) {
+            let d = document.createElement("div"); d.className = 'message ' + c;
+            d.innerHTML = t; b.appendChild(d); b.scrollTop = b.scrollHeight;
+        }
     </script>
 </body>
 </html>
