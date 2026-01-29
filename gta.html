@@ -1,7 +1,289 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HALVIOR AI // SYSTEM OVERLORD</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --side: #111114;
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.3);
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR (Gemini Style) --- */
+        #sidebar {
+            width: 280px;
+            background: var(--side);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            z-index: 100;
+        }
+
+        .new-chat {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .new-chat:hover { background: var(--accent-glow); border-color: var(--accent); }
+
+        #history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .history-item {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .history-item:hover { background: var(--glass); color: var(--text); }
+
+        .online-status {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: #10b981;
+        }
+
+        /* --- MAIN CONTENT --- */
+        #main { flex: 1; display: flex; flex-direction: column; position: relative; background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0c 100%); }
+
+        #chat-flow {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 15%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            scroll-behavior: smooth;
+        }
+
+        .row { display: flex; gap: 20px; animation: slideUp 0.4s ease forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .avatar {
+            width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 0.9rem; flex-shrink: 0;
+        }
+        .avatar.ai { background: linear-gradient(45deg, var(--accent), #3b82f6); box-shadow: 0 0 15px var(--accent-glow); }
+        .avatar.user { background: #334155; }
+
+        .content { max-width: 85%; line-height: 1.7; font-size: 0.95rem; }
+        .content b { color: var(--accent); }
+
+        /* --- 15 STEPS PROCESS LOG --- */
+        .process-box {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+        .step { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+        .step.done { color: #10b981; }
+        .step.doing { color: var(--accent); animation: pulse 1s infinite; }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+
+        /* --- INPUT AREA --- */
+        #input-wrapper {
+            padding: 20px 15% 40px 15%;
+            background: linear-gradient(to top, var(--bg) 70%, transparent);
+        }
+        .input-box {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        
+        textarea {
+            flex: 1; background: transparent; border: none; color: #fff;
+            padding: 12px 0; resize: none; height: 48px; outline: none; font-size: 1rem;
+        }
+        #send-btn {
+            background: var(--accent); color: white; border: none; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; margin-left: 10px; font-weight: bold;
+        }
+        #send-btn:hover { transform: scale(1.1); background: #7c3aed; }
+
+        /* --- CODE BLOCK --- */
+        .code-block {
+            background: #000; border-radius: 10px; border: 1px solid var(--border);
+            margin-top: 15px; overflow: hidden;
+        }
+        .code-header { background: #111; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); }
+        pre { margin: 0; padding: 15px; overflow-x: auto; color: #82aaff; font-family: 'JetBrains Mono', monospace; }
+        .copy { cursor: pointer; color: var(--accent); }
+
+    </style>
+</head>
 <body>
- <h1>Halvior AI</h1>
- <p>Kod basarıyla olusturuldu.</p>
+
+<div id="sidebar">
+    <div class="new-chat" onclick="newChat()">
+        <span>+</span> Yeni Sohbet
+    </div>
+    <div id="history">
+        <div class="history-item">Halvior Mimari Taslak...</div>
+        <div class="history-item">Veri Analizi Projesi...</div>
+    </div>
+    <div class="online-status">
+        <div id="live-clock">00:00:00</div>
+        <div>SYS: ONLINE</div>
+        <div>LATENCY: 12ms</div>
+    </div>
+</div>
+
+<div id="main">
+    <div id="chat-flow">
+        <div class="row">
+            <div class="avatar ai">H</div>
+            <div class="content">
+                <b>Halvior AI // Overlord Edition Aktif.</b><br>
+                Selam knk, sistemi Gemini tarzı profesyonel bir arayüze çektim ama ruhu hala hacker. Hafıza açık, online mod aktif. Ne yapıyoruz bugün?
+            </div>
+        </div>
+    </div>
+
+    <div id="input-wrapper">
+        <div class="input-box">
+            <textarea id="inp" placeholder="Sorunu sor veya kod iste knk..." onkeypress="if(event.key=='Enter' && !event.shiftKey){ event.preventDefault(); send(); }"></textarea>
+            <button id="send-btn" onclick="send()">➤</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatFlow = document.getElementById("chat-flow");
+    const inp = document.getElementById("inp");
+
+    // Canlı Saat
+    setInterval(() => {
+        document.getElementById("live-clock").innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // HAFIZA (Memory)
+    window.onload = () => {
+        const saved = localStorage.getItem("halvior_pro_logs");
+        if(saved) {
+            chatFlow.innerHTML = saved;
+            chatFlow.scrollTop = chatFlow.scrollHeight;
+        }
+    };
+
+    function save() { localStorage.setItem("halvior_pro_logs", chatFlow.innerHTML); }
+
+    function newChat() {
+        if(confirm("Yeni sohbet açalım mı knk? Eskiler hafızada kalacak.")) {
+            chatFlow.innerHTML = `<div class="row"><div class="avatar ai">H</div><div class="content"><b>Oturum Sıfırlandı.</b><br>Yeni bir başlangıç yapıyoruz. Ne istersin?</div></div>`;
+            save();
+        }
+    }
+
+    const steps = [
+        "1️⃣ Problem Tanımı Yapılıyor...",
+        "2️⃣ Veri Kalitesi Kontrol Ediliyor...",
+        "3️⃣ Özellik Çıkarımı Başlatıldı...",
+        "5️⃣ Eğitim Süreci Simüle Ediliyor...",
+        "9️⃣ Performans Ölçümü: %99.8",
+        "1️⃣4️⃣ Etik ve Sınır Kontrolü Tamam."
+    ];
+
+    async function send() {
+        const val = inp.value.trim();
+        if(!val) return;
+
+        // User Msg
+        addMsg(val, 'user');
+        inp.value = "";
+        
+        // AI Row
+        const aiRow = createRow();
+        chatFlow.appendChild(aiRow);
+        const content = aiRow.querySelector('.content');
+
+        // Process Steps
+        const pBox = document.createElement("div");
+        pBox.className = "process-box";
+        content.appendChild(pBox);
+
+        for(let s of steps) {
+            const sd = document.createElement("div");
+            sd.className = "step doing";
+            sd.innerText = s;
+            pBox.appendChild(sd);
+            chatFlow.scrollTop = chatFlow.scrollHeight;
+            await new Promise(r => setTimeout(r, 250));
+            sd.className = "step done";
+        }
+
+        // Response Logic
+        let response = "";
+        const low = val.toLowerCase();
+
+        if(low.includes("kod") || low.includes("yaz")) {
+            response = "İstediğin kod yapısını mühendislik süzgecinden geçirdim. İşte taslağın:";
+            response += `<div class="code-block"><div class="code-header"><span>HACKER_SCRIPT.js</span><span class="copy">KOPYALA</span></div><pre><code>// Halvior AI Generated\nfunction systemHack() {\n  console.log("Access Granted");\n  return true;\n}</code></pre></div>`;
+        } else if(low.includes("nedir") || low.includes("kim")) {
+            const q = val.replace("nedir","").replace("kim","").trim();
+            const data = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r => r.json());
+            response = data.extract || "Bu konuda derin bir bilgi bulamadım ama araştırmaya devam ediyorum knk.";
+        } else {
+            response = "Anlaşıldı knk. Bu konuyu hafızama aldım. Başka bir detay lazım mı?";
+        }
+
+        const resDiv = document.createElement("div");
+        resDiv.style.marginTop = "15px";
+        resDiv.innerHTML = response;
+        content.appendChild(resDiv);
+        
+        chatFlow.scrollTop = chatFlow.scrollHeight;
+        save();
+    }
+
+    function addMsg(t, type) {
+        const row = createRow(type);
+        row.querySelector('.content').innerText = t;
+        chatFlow.appendChild(row);
+        chatFlow.scrollTop = chatFlow.scrollHeight;
+    }
+
+    function createRow(type = 'ai') {
+        const d = document.createElement("div");
+        d.className = `row ${type}`;
+        d.innerHTML = `<div class="avatar ${type}">${type === 'ai' ? 'H' : 'S'}</div><div class="content"></div>`;
+        return d;
+    }
+</script>
+
 </body>
 </html>
