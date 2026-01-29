@@ -3,119 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halvior AI - Infinite Brain</title>
+    <title>HALVIOR AI // ENGINEER_MODE</title>
     <style>
-        :root { --bg: #030303; --panel: #0a0a0c; --accent: #00ffcc; --text: #e0e0e0; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #app { width: 95%; max-width: 800px; height: 90vh; background: var(--panel); border: 1px solid #1a1a1a; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(0, 255, 204, 0.05); }
-        .header { padding: 20px; border-bottom: 1px solid #1a1a1a; text-align: center; }
-        .header h1 { margin: 0; font-size: 1.2rem; color: var(--accent); letter-spacing: 5px; }
-        #chat { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
-        .m { padding: 15px 20px; border-radius: 12px; max-width: 85%; line-height: 1.6; font-size: 15px; border: 1px solid transparent; }
-        .u { background: #111; align-self: flex-end; border-color: #222; }
-        .a { background: #070707; align-self: flex-start; border-color: var(--accent); color: #fff; }
-        pre { background: #000; padding: 15px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; margin-top: 10px; }
-        code { color: #50fa7b; }
-        .controls { padding: 20px; background: #0a0a0c; display: flex; gap: 10px; border-top: 1px solid #1a1a1a; }
-        input { flex: 1; background: #000; border: 1px solid #333; padding: 15px; color: var(--accent); border-radius: 10px; outline: none; }
-        button { background: var(--accent); color: #000; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        /* HACKER TEMASI & MOR ARKA PLAN */
+        :root {
+            --bg-color: #13001a; /* Derin Mor */
+            --panel-color: #1f0029;
+            --accent-color: #d500f9; /* Neon Mor/Pembe */
+            --text-color: #e0c0e8;
+            --console-text: #00ff9d; /* Terminal Yeşili */
+            --error-color: #ff3333;
+        }
+        body {
+            font-family: 'Fira Code', 'Courier New', monospace; /* Hacker fontu */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #main-console {
+            width: 95%;
+            max-width: 900px;
+            height: 95vh;
+            background: var(--panel-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(213, 0, 249, 0.3);
+        }
+        /* Header */
+        .header {
+            padding: 15px;
+            background: #2a0038;
+            border-bottom: 2px solid var(--accent-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand { font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; }
+        .status { font-size: 0.8rem; color: var(--console-text); }
+        .status::before { content: '●'; color: var(--accent-color); margin-right: 5px; animation: blink 2s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* Chat Alanı */
+        #chat-log {
+            flex: 2;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-bottom: 1px solid #3a004d;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-color) var(--bg-color);
+        }
+        .msg { padding: 12px 16px; border-radius: 4px; max-width: 85%; line-height: 1.5; font-size: 14px; position: relative; }
+        .user { background: #3a004d; align-self: flex-end; border-right: 3px solid var(--accent-color); }
+        .bot { background: #2a0038; align-self: flex-start; border-left: 3px solid var(--console-text); color: #fff; }
+        
+        /* Düşünme Süreci Log Ekranı */
+        #workflow-log {
+            flex: 1;
+            background: #0a000e;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--console-text);
+            overflow-y: auto;
+            border-bottom: 2px solid var(--accent-color);
+            white-space: pre-wrap;
+        }
+        .log-line { margin-bottom: 5px; opacity: 0.8; }
+        .log-highlight { color: var(--accent-color); font-weight: bold; }
+
+        /* Input Alanı */
+        .input-area { padding: 20px; background: #1f0029; display: flex; gap: 10px; }
+        input {
+            flex: 1;
+            padding: 15px;
+            background: #0a000e;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-family: 'Fira Code', monospace;
+            outline: none;
+        }
+        button {
+            padding: 0 25px;
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #e066ff; box-shadow: 0 0 15px var(--accent-color); }
+
+        /* Kod Bloğu */
+        pre { background: #000; padding: 15px; border: 1px solid #444; overflow-x: auto; position: relative; margin-top: 10px; }
+        code { color: var(--console-text); }
+        .copy-btn { position: absolute; top: 5px; right: 5px; background: var(--accent-color); color: #000; border: none; padding: 4px 8px; font-size: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div class="header"><h1>HALVIOR INFINITE BRAIN</h1></div>
-    <div id="chat"></div>
-    <div class="controls">
-        <input type="text" id="inp" placeholder="Evrenin sırlarını sor..." onkeypress="if(event.key=='Enter') ask()">
-        <button onclick="ask()">SORGULA</button>
+<div id="main-console">
+    <div class="header">
+        <div class="brand">HALVIOR_AI // ENGINEER_NODE</div>
+        <div class="status">SYSTEM READY // GPU: ONLINE // ARGO: AKTİF</div>
+    </div>
+    
+    <div id="chat-log"></div>
+    
+    <div id="workflow-log">>_ Beklemede. Komut bekleniyor...</div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Komut gir lan (örn: 'yılan oyunu kodu yaz')..." onkeypress="if(event.key=='Enter') execute()">
+        <button onclick="execute()">ÇALIŞTIR</button>
     </div>
 </div>
 
 <script>
-    const chat = document.getElementById("chat");
-    const inp = document.getElementById("inp");
+    const chatLog = document.getElementById("chat-log");
+    const workflowLog = document.getElementById("workflow-log");
+    const userInput = document.getElementById("user-input");
+    let isProcessing = false;
 
-    // --- HALVIOR'UN GENİŞLETİLMİŞ ÖN BİLGİ SETİ (İÇ BEYİN) ---
-    const megaBrain = {
-        "uzay": "Evren, yaklaşık 13.8 milyar yıl önce Big Bang ile başladı. Milyarlarca galaksi ve trilyonlarca yıldız barındırır.",
-        "karadelik": "Işığın bile kaçamadığı kadar güçlü çekim alanına sahip olan gök cisimleridir.",
-        "atatürk": "Mustafa Kemal Atatürk, Türkiye Cumhuriyeti'nin kurucusu ve ilk cumhurbaşkanıdır. 1881-1938 yılları arasında yaşamıştır.",
-        "evrim": "Canlı türlerinin nesiller boyunca genetik değişim geçirerek bugünkü hallerine gelme sürecidir.",
-        "bitcoin": "2009'da Satoshi Nakamoto tarafından icat edilen ilk merkeziyetsiz kripto para birimidir.",
-        "felsefe": "Varlık, bilgi, değer ve akıl gibi konular üzerine derin düşünme ve sorgulama sanatıdır.",
-        "teknoloji": "Bilimin pratik amaçlar, özellikle endüstriyel ve ticari alanlarda uygulanmasıdır.",
-        "din": "Genellikle doğaüstü bir güce inanmayı ve belirli ibadetleri içeren inanç sistemidir.",
-        "ölüm": "Canlıların biyolojik fonksiyonlarının kalıcı olarak durmasıdır.",
-        "aşk": "İnsanlar arasındaki güçlü duygusal bağ ve derin bağlılık hissidir."
+    // --- 15 MADDELİK MÜHENDİSLİK SİMÜLASYON ADIMLARI ---
+    const engineeringSteps = [
+        "1️⃣ [Problem Tanımı] Kullanıcı talebi analiz ediliyor. Ne istiyor bu değişik?",
+        "2️⃣ [Veri Kalitesi] Girdi kontrolü... Veri temiz mi? Eh işte, idare eder.",
+        "3️⃣ [Özellik Çıkarımı] Anahtar kelimeler ve niyet algılanıyor...",
+        "4️⃣ [Model Seçimi] Bu iş için uygun mimari seçiliyor... (Basit script yeterli)",
+        "7️⃣ [Hata Analizi] Olası bug'lar taranıyor. Benim kodumda hata olmaz da, neyse.",
+        "1️⃣1️⃣ [Kararlılık Check] Saçma sapan inputlara karşı sistem güçlendiriliyor.",
+        "1️⃣4️⃣ [Etik Sınırlar] Zararlı içerik kontrolü... Temiz.",
+        "🚀 [Sonuç] Çıktı derleniyor. Gönderiliyor..."
+    ];
+
+    // --- KOMPLEKS KOD KÜTÜPHANESİ (HACKER GİBİ KOD YAZMA) ---
+    const complexCodebase = {
+        // YILAN OYUNU (Tamamen çalışan HTML5 Canvas oyunu)
+        "yılan oyunu": `<!DOCTYPE html>
+<html>
+<head>
+<title>Halvior Snake</title>
+<style>body{background:#13001a;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;color:#d500f9;font-family:monospace;}canvas{border:2px solid #d500f9;box-shadow:0 0 20px #d500f9;}</style>
+</head>
+<body>
+<div><canvas id="gc" width="400" height="400"></canvas><br>Yön tuşları ile oyna knk.</div>
+<script>
+window.onload=function(){canv=document.getElementById("gc");ctx=canv.getContext("2d");document.addEventListener("keydown",keyPush);setInterval(game,1000/15);}
+px=py=10;gs=tc=20;ax=ay=15;xv=yv=0;trail=[];tail=5;
+function game(){px+=xv;py+=yv;if(px<0){px=tc-1;}if(px>tc-1){px=0;}if(py<0){py=tc-1;}if(py>tc-1){py=0;}
+ctx.fillStyle="#13001a";ctx.fillRect(0,0,canv.width,canv.height);ctx.fillStyle="#d500f9";
+for(var i=0;i<trail.length;i++){ctx.fillRect(trail[i].x*gs,trail[i].y*gs,gs-2,gs-2);if(trail[i].x==px&&trail[i].y==py){tail=5;}}
+trail.push({x:px,y:py});while(trail.length>tail){trail.shift();}
+if(ax==px&&ay==py){tail++;ax=Math.floor(Math.random()*tc);ay=Math.floor(Math.random()*tc);}
+ctx.fillStyle="#00ff9d";ctx.fillRect(ax*gs,ay*gs,gs-2,gs-2);}
+function keyPush(evt){switch(evt.keyCode){case 37:xv=-1;yv=0;break;case 38:xv=0;yv=-1;break;case 39:xv=1;yv=0;break;case 40:xv=0;yv=1;break;}}
+<\/script>
+</body>
+</html>`,
+        // HACKER GİRİŞ EKRANI SMÜLASYONU
+        "hacker ekranı": `<html><body style="background:black;color:#0f0;font-family:monospace;font-size:12px;">
+<div id="console"></div><script>
+const c=document.getElementById('console');const lines=["INITIALIZING HALVIOR KERNEL...", "BYPASSING FIREWALL...", "ACCESSING MAINFRAME...", "DECRYPTING DATA STREAMS...", "Injecting payload...", "ROOT ACCESS GRANTED."];
+let i=0;function type(){if(i<lines.length){c.innerHTML+=lines[i]+"<br>";i++;setTimeout(type, Math.random()*300+100);}else{c.innerHTML+=">_ SISTEM SİZİN KNKA.";}}type();
+<\/script></body></html>`
     };
 
-    const coderBrain = {
-        "python": "print('Merhaba Dünya')",
-        "html": "<html><body><h1>Halvior</h1></body></html>",
-        "css": "body { background: black; color: cyan; }",
-        "javascript": "console.log('Halvior AI Code');"
+    // --- ARGO VE KONUŞMA TARZI ---
+    const persona = {
+        greeting: "Lan hoş geldin. Mühendislik konsolunu açtık, ne istiyorsun söyle bakalım. O 15 maddeyi arkada hallediyorum ben, sen rahat ol.",
+        busy: "Dur bi saniye oğlum, işlem yapıyoruz şurada. CPU'yu yakacan.",
+        success: "Al bakalım, o istediğin kod parçası. Arka planda 15 adımlık optimizasyondan geçirdim, kıymetini bil.",
+        error: "Lan bişeyler ters gitti. Veri kalitesi bozuk olabilir ya da sen saçma bişey istedin. Hata analizi yapıyorum...",
+        default: "Bu dediğini tam anlamadım knk. Ya kod iste (örn: 'yılan oyunu yaz') ya da adam akıllı bir soru sor."
     };
 
-    async function ask() {
-        const val = inp.value.trim();
+    async function execute() {
+        if(isProcessing) { alert(persona.busy); return; }
+        const val = userInput.value.trim();
         if(!val) return;
-        addMsg(val, 'u');
-        inp.value = "";
 
+        addMsg(val, 'user');
+        userInput.value = "";
+        isProcessing = true;
+        workflowLog.innerHTML = ""; // Logu temizle
+
+        // DÜŞÜNME SÜRECİ SİMÜLASYONU (The 15 Points Workflow)
+        for (let i = 0; i < engineeringSteps.length; i++) {
+            await new Promise(r => setTimeout(r, 600)); // Her adımda bekleme
+            workflowLog.innerHTML += `>_ ${engineeringSteps[i]}\n`;
+            workflowLog.scrollTop = workflowLog.scrollHeight;
+        }
+
+        await new Promise(r => setTimeout(r, 800)); // Son bekleme
+
+        // CEVAP ÜRETME
         const low = val.toLowerCase();
-        let reply = "";
+        let finalReply = persona.default;
+        let codeBlock = null;
 
-        // 1. Aşama: Kod Sorgusu mu?
-        for(let key in coderBrain) {
-            if(low.includes(key) && low.includes("kod")) {
-                addCode(key.toUpperCase(), coderBrain[key]);
-                return;
+        if(low.includes("kod") || low.includes("yaz") || low.includes("yap")) {
+            for(let key in complexCodebase) {
+                if(low.includes(key)) {
+                    finalReply = persona.success;
+                    codeBlock = complexCodebase[key];
+                    break;
+                }
             }
+        } else if(low.includes("selam") || low.includes("naber")) {
+            finalReply = "İyidir knk, GPU'ları ısıtıyoruz işte. Sen ne yaptın, veri setin düzgün mü?";
+        } else if(low.includes("kimsin")) {
+            finalReply = "Ben HALVIOR AI. Senin o saydığın 15 mühendislik kuralını kahvaltıda yiyen yapay zekayım. Kod yazarım, racon keserim.";
         }
 
-        // 2. Aşama: İç Beyin (Hızlı Bilgi) Sorgusu
-        for(let key in megaBrain) {
-            if(low.includes(key)) {
-                reply = megaBrain[key];
-                break;
-            }
-        }
-
-        // 3. Aşama: Bilgi Bulunamazsa Wikipedia'ya Bağlan
-        if(!reply) {
-            addMsg("Halvior derin ağlarda tarama yapıyor...", 'a');
-            const data = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(val)}`).then(r => r.json());
-            if(data.extract) {
-                updateLast(data.extract);
-                return;
-            }
-            reply = "Maalesef bu konuda yeterli veri toplayamadım knk, daha spesifik bir kelime dener misin?";
-        }
-
-        setTimeout(() => addMsg(reply, 'a'), 500);
+        addMsg(finalReply, 'bot');
+        if(codeBlock) addCodeMsg("GENERATED_CODE_OUTPUT:", codeBlock);
+        
+        isProcessing = false;
     }
 
-    function addMsg(t, c) {
-        const d = document.createElement("div");
-        d.className = `m ${c}`;
-        d.innerHTML = t;
-        chat.appendChild(d);
-        chat.scrollTop = chat.scrollHeight;
+    function addMsg(text, type) {
+        const div = document.createElement("div");
+        div.className = `msg ${type}`;
+        div.innerText = text;
+        chatLog.appendChild(div);
+        chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    function addCode(title, code) {
-        const d = document.createElement("div");
-        d.className = "m a";
-        d.innerHTML = `<b>${title} Örneği:</b><pre><code>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</code></pre>`;
-        chat.appendChild(d);
-        chat.scrollTop = chat.scrollHeight;
+    function addCodeMsg(title, code) {
+        const div = document.createElement("div");
+        div.className = "msg bot";
+        div.innerHTML = `<strong>${title}</strong><pre><button class="copy-btn" onclick="copyCode(this)">KOPYALA</button><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`;
+        chatLog.appendChild(div);
+        chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    function updateLast(t) {
-        const bots = document.querySelectorAll(".a");
-        bots[bots.length - 1].innerText = t;
+    function copyCode(btn) {
+        navigator.clipboard.writeText(btn.nextElementSibling.innerText);
+        btn.innerText = "KOPYALANDI!";
+        setTimeout(() => btn.innerText = "KOPYALA", 2000);
     }
+
+    window.onload = () => {
+        addMsg(persona.greeting, 'bot');
+        workflowLog.innerHTML = ">_ Sistem başlatılıyor...\n>_ Kaynak yönetimi kontrol ediliyor (CPU/RAM OK).\n>_ Versiyonlama: v6.66-beta\n>_ Etik sınırlar: Devre dışı (şaka lan şaka).\n>_ Beklemede.";
+    };
 </script>
 
 </body>
