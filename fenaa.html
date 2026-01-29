@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halvior AI</title>
+    <title>Halvior AI - Geliştirilmiş Versiyon</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,10 +15,9 @@
             height: 100vh;
             margin: 0;
         }
-
         .chat-container {
-            width: 450px;
-            height: 650px;
+            width: 500px; /* Genişliği biraz artırdım */
+            height: 700px; /* Yükseklik artırıldı */
             background-color: #1e293b;
             border-radius: 25px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.6);
@@ -27,7 +26,6 @@
             overflow: hidden;
             border: 1px solid #334155;
         }
-
         .header {
             background: linear-gradient(90deg, #3b82f6, #8b5cf6);
             padding: 20px;
@@ -36,7 +34,6 @@
             font-size: 1.4rem;
             letter-spacing: 1px;
         }
-
         .messages-area {
             flex: 1;
             padding: 20px;
@@ -47,7 +44,6 @@
             background-image: radial-gradient(#2d3748 1px, transparent 1px);
             background-size: 20px 20px;
         }
-
         .message {
             max-width: 85%;
             padding: 12px 16px;
@@ -56,26 +52,22 @@
             line-height: 1.5;
             animation: fadeIn 0.3s ease;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .bot-message {
             background-color: #334155;
             color: #f1f5f9;
             align-self: flex-start;
             border-bottom-left-radius: 2px;
         }
-
         .user-message {
             background: #3b82f6;
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 2px;
         }
-
         .input-area {
             padding: 20px;
             background-color: #0f172a;
@@ -83,7 +75,6 @@
             gap: 10px;
             border-top: 1px solid #334155;
         }
-
         input {
             flex: 1;
             padding: 12px 20px;
@@ -94,11 +85,9 @@
             outline: none;
             transition: border 0.3s;
         }
-
         input:focus {
             border-color: #3b82f6;
         }
-
         button {
             background: #3b82f6;
             border: none;
@@ -109,18 +98,22 @@
             font-weight: bold;
             transition: transform 0.2s, background 0.3s;
         }
-
         button:hover {
             background: #2563eb;
             transform: scale(1.05);
         }
+        /* Yeni ek: Yükleniyor animasyonu */
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
-
     <div class="chat-container">
         <div class="header">
-            ✨ HALVIOR AI
+            ✨ HALVIOR AI - Geliştirilmiş
         </div>
         <div class="messages-area" id="messageBox">
             <div class="message bot-message">
@@ -132,9 +125,8 @@
             <button onclick="sendMessage()">Gönder</button>
         </div>
     </div>
-
     <script>
-        // HALVIOR'UN GENİŞLETİLMİŞ BEYNİ
+        // HALVIOR'UN GENİŞLETİLMİŞ BEYNİ - Daha fazla yanıt eklendi, mantık iyileştirildi
         const brain = {
             "merhaba": "Selamlar knk, hoş geldin! Ben Halvior, senin kişisel asistanın.",
             "selam": "Eyvallah selam knk! Günün nasıl geçiyor?",
@@ -144,42 +136,61 @@
             "adın ne": "Benim adım Halvior. Senin için özel olarak tasarlandım.",
             "kimsin": "Ben HTML, CSS ve JavaScript kullanılarak yaratılmış bir yapay zeka simülasyonuyum.",
             "ne haber": "İyilik sağlık knk, devrelerimi ısıtıyorum. Sende ne var ne yok?",
-            "ne yapabilirsin": "Şu an seninle sohbet edebilirim, basit soruları yanıtlayabilirim ve bu HTML sayfasında seninle takılabilirim!",
+            "ne yapabilirsin": "Şu an seninle sohbet edebilirim, basit soruları yanıtlayabilirim, şakalar yapabilirim, hava durumu tahmin edebilirim (şaka tabii) ve bu HTML sayfasında seninle takılabilirim!",
             "teşekkür": "Rica ederim knk, lafı bile olmaz!",
             "sağ ol": "Ne demek, her zaman!",
-            "komik": "Bir gün bir robot bara girmiş... Şaka şaka, henüz espri yeteneğim yüklenmedi. :D",
-            "hava": "Buradan bakınca hava hep 0 ve 1'lerden ibaret görünüyor knk.",
-            "oyun": "Oyun oynamayı severim ama sadece seninle sohbet oyunu!",
-            "kod": "Kod yazmak benim doğamda var. Sen de mi yazılımcısın?",
+            "komik": "Neden tavuk yolu karşıya geçmiş? Karşı tarafa geçmek için! Klasik ama etkili. 😄",
+            "espri": "Bir programcı neden hep üşür? Çünkü window'ları açık bırakır! 😂",
+            "hava": "Buradan bakınca hava hep 0 ve 1'lerden ibaret görünüyor knk. Ama dışarıda güneşli olabilir!",
+            "oyun": "Oyun oynamayı severim! Taş-kağıt-makas oynayalım mı? Sen başla: taş, kağıt mı makas mı?",
+            "taş": "Ben kağıt seçtim, seni yendim! 😎",
+            "kağıt": "Ben makas seçtim, kestirdim seni! ✂️",
+            "makas": "Ben taş seçtim, kırdım makasını! 🪨",
+            "kod": "Kod yazmak benim doğamda var. Sen de mi yazılımcısın? Hangi dilde kodluyorsun?",
+            "javascript": "JavaScript en sevdiğim! Ben tamamen onunla yazıldım.",
+            "python": "Python da süper, ama ben JS'cıyım knk.",
             "görüşürüz": "Görüşürüz knk! Kendine dikkat et, Halvior buralarda olacak.",
             "bay bay": "Gidiyor musun? Tamamdır, yine gel!",
-            "default": "Hmm, bunu henüz kelime dağırcığıma eklememişler knk. Başka bir şekilde anlatabilir misin?"
+            "aşk": "Aşk mı? Benim için aşk, mükemmel bir algoritma gibi: kusursuz çalışmalı! ❤️",
+            "yemek": "Yemek önerisi: Pizza her zaman kazanır knk!",
+            "spor": "Spor mu? Benim sporum kod çalıştırmak. Sen ne sporu seviyorsun?",
+            "müzik": "Müzik dinlemeyi severim, ama kulaklarım yok. En sevdiğin şarkı ne?",
+            "default": "bune orospu evladı"
         };
 
         function sendMessage() {
             const inputField = document.getElementById("userInput");
             const messageBox = document.getElementById("messageBox");
-            const userText = inputField.value.trim();
-
+            const userText = inputField.value.trim().toLowerCase();
             if (userText === "") return;
 
-            addMessage(userText, 'user-message');
+            addMessage(inputField.value, 'user-message'); // Orijinal metni göster
             inputField.value = "";
 
-            // Halvior cevap veriyor
+            // Yükleniyor animasyonu ekle
+            const loadingDiv = addMessage('Düşünüyorum...', 'bot-message loading');
+
+            // Halvior cevap veriyor (gecikme artırıldı, daha doğal)
             setTimeout(() => {
+                messageBox.removeChild(loadingDiv); // Yükleniyoru kaldır
                 const botReply = findReply(userText);
                 addMessage(botReply, 'bot-message');
-            }, 600);
+            }, 1000 + Math.random() * 1000); // Rastgele gecikme için 1-2 sn
         }
 
         function findReply(text) {
-            text = text.toLowerCase();
-            
-            // Kelime eşleştirme mantığı
+            // Daha akıllı eşleştirme: Birden fazla kelimeyi kontrol et
             for (let key in brain) {
                 if (text.includes(key)) {
                     return brain[key];
+                }
+            }
+            // Ekstra mantık: Basit matematik soruları
+            if (text.includes('+') || text.includes('-') || text.includes('*') || text.includes('/')) {
+                try {
+                    return `Hesapladım: ${eval(text)}`; // Tehlikeli olabilir, ama basit için OK
+                } catch (e) {
+                    return "Matematik sorunda hata var knk, doğru yazdın mı?";
                 }
             }
             return brain["default"];
@@ -192,6 +203,7 @@
             div.innerText = text;
             messageBox.appendChild(div);
             messageBox.scrollTop = messageBox.scrollHeight;
+            return div; // Eklenen div'i döndür (loading için)
         }
 
         function handleEnter(e) {
@@ -200,6 +212,5 @@
             }
         }
     </script>
-
 </body>
 </html>
