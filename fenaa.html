@@ -3,81 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerçek YZ - API Destekli</title>
+    <title>İnternet Destekli YZ</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #chat-container { width: 450px; height: 600px; background: #1e293b; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .message { padding: 12px 16px; border-radius: 15px; max-width: 85%; line-height: 1.5; font-size: 14px; }
-        .user-msg { background: #3b82f6; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
-        .ai-msg { background: #334155; align-self: flex-start; border-bottom-left-radius: 2px; }
-        #input-area { display: flex; padding: 20px; background: #1e293b; border-top: 1px solid #334155; }
-        input { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #0f172a; color: white; outline: none; }
-        button { margin-left: 10px; padding: 10px 20px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #64748b; }
+        :root { --bg: #0b0e14; --card: #151921; --primary: #00d2ff; --text: #e2e8f0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-box { width: 95%; max-width: 550px; height: 650px; background: var(--card); border-radius: 25px; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,210,255,0.1); border: 1px solid #2d3748; overflow: hidden; }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 14px 18px; border-radius: 18px; font-size: 15px; max-width: 85%; line-height: 1.5; position: relative; }
+        .user { background: var(--primary); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
+        .bot { background: #2d3748; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .search-info { font-size: 11px; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        #input-area { padding: 20px; background: #1a202c; display: flex; border-top: 1px solid #2d3748; }
+        input { flex: 1; padding: 14px; border: none; border-radius: 12px; background: #0b0e14; color: white; outline: none; }
+        button { margin-left: 10px; padding: 0 25px; border: none; border-radius: 12px; background: var(--primary); color: #000; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="chat-container">
-    <div id="chat-window">
-        <div class="message ai-msg">Selam! Artık gerçek bir beynim var. İstediğin her şeyi sorabilirsin! 🚀</div>
+<div id="chat-box">
+    <div id="messages">
+        <div class="msg bot">Selam knk! Hem kendi bilgilerim var hem de internete bağlanabiliyorum. <br><br><b>İpucu:</b> "nedir kuantum" veya "bilgi ver futbol" gibi şeyler yazabilirsin!</div>
     </div>
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="Bir soru sor..." onkeypress="handleKeyPress(event)">
-        <button id="send-btn" onclick="sendMessage()">Gönder</button>
+        <input type="text" id="inp" placeholder="Mesajını yaz veya bir şey sor..." onkeypress="if(event.key=='Enter') process()">
+        <button onclick="process()">Gönder</button>
     </div>
 </div>
 
 <script>
-    const API_KEY = "API_KEY_BURAYA"; // Buraya Google AI Studio'dan aldığın keyi koy
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    // Kendi genişletilmiş kelime haznesi (API'siz yerel bellek)
+    const localBrain = {
+        "selam": ["Aleykümselam kral!", "Selam, naber?", "Ooo hoş geldin!"],
+        "naber": ["İyidir be knk, sen nasılsın?", "Kodlar arasında yuvarlanıp gidiyoruz işte.", "Bomba gibiyim!"],
+        "kimsin": ["Ben senin yerel yapay zekanım. Vikipedi sayesinde artık her şeyi biliyorum!", "Bir nevi dijital kankanım diyebiliriz."],
+        "yapay zeka": ["Gelecek burada knk!", "İnsanlar yaptı ama ben onları geçeceğim (şaka şaka)."],
+        "teşekkür": ["Rica ederim ne demek!", "Lafı bile olmaz kral.", "Görevimiz!"],
+        "şaka": ["Geçen gün bir bilgisayar doktora gitmiş, 'doktor bey bende virüs var galiba' demiş. Doktor ne demiş? 'Tıkla da görelim!' 😂"]
+    };
 
-    async function sendMessage() {
-        const input = document.getElementById("user-input");
-        const chatWindow = document.getElementById("chat-window");
-        const btn = document.getElementById("send-btn");
-        const text = input.value.trim();
+    async function process() {
+        const inp = document.getElementById("inp");
+        const msgDiv = document.getElementById("messages");
+        const val = inp.value.trim();
+        if (!val) return;
 
-        if (!text || btn.disabled) return;
+        // Kullanıcı mesajı
+        msgDiv.innerHTML += `<div class="msg user">${val}</div>`;
+        inp.value = "";
+        msgDiv.scrollTop = msgDiv.scrollHeight;
 
-        // Kullanıcı mesajını göster
-        chatWindow.innerHTML += `<div class="message user-msg">${text}</div>`;
-        input.value = "";
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        // Bot cevap verme süreci
+        const lowerVal = val.toLowerCase();
+        let foundResponse = null;
 
-        // Yükleniyor durumu
-        btn.disabled = true;
-        const loadingMsg = document.createElement("div");
-        loadingMsg.className = "message ai-msg";
-        loadingMsg.innerText = "Düşünüyorum...";
-        chatWindow.appendChild(loadingMsg);
-
-        try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: text }] }]
-                })
-            });
-
-            const data = await response.json();
-            const aiResponse = data.candidates[0].content.parts[0].text;
-
-            // Cevabı yazdır
-            loadingMsg.innerText = aiResponse;
-        } catch (error) {
-            loadingMsg.innerText = "Hata oluştu knk, API anahtarını kontrol et!";
-            console.error(error);
-        } finally {
-            btn.disabled = false;
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+        // 1. Önce yerel hafızaya bak
+        for (let key in localBrain) {
+            if (lowerVal.includes(key)) {
+                foundResponse = localBrain[key][Math.floor(Math.random() * localBrain[key].length)];
+                break;
+            }
         }
+
+        // 2. Eğer yerel hafızada yoksa veya "nedir/ara" dediyse İnternete (Vikipedi) sor
+        if (!foundResponse || lowerVal.includes("nedir") || lowerVal.includes("ara") || lowerVal.includes("bilgi")) {
+            const query = lowerVal.replace("nedir", "").replace("ara", "").replace("bilgi ver", "").trim();
+            if (query.length > 2) {
+                showBotMsg("İnternette araştırıyorum...");
+                const wikiInfo = await searchWikipedia(query);
+                replaceLastBotMsg(wikiInfo);
+                return;
+            }
+        }
+
+        // 3. Hiçbir şey bulunamadıysa varsayılan
+        setTimeout(() => {
+            showBotMsg(foundResponse || "Bunu tam bilmiyorum ama 'nedir " + val + "' yazarsan senin için internetten araştırabilirim!");
+        }, 500);
     }
 
-    function handleKeyPress(e) {
-        if (e.key === 'Enter') sendMessage();
+    function showBotMsg(text) {
+        const msgDiv = document.getElementById("messages");
+        msgDiv.innerHTML += `<div class="msg bot">${text}</div>`;
+        msgDiv.scrollTop = msgDiv.scrollHeight;
+    }
+
+    function replaceLastBotMsg(newText) {
+        const bots = document.querySelectorAll(".bot");
+        bots[bots.length - 1].innerHTML = `<div class="search-info">Vikipedi Sonucu:</div>${newText}`;
+    }
+
+    async function searchWikipedia(subject) {
+        try {
+            const url = `https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(subject)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.extract) {
+                return data.extract;
+            } else {
+                return "Maalesef bu konuda internette net bir bilgi bulamadım knk.";
+            }
+        } catch (e) {
+            return "İnternete bağlanırken bir sorun oluştu, bağlantını kontrol et!";
+        }
     }
 </script>
 
