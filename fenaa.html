@@ -3,67 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Lite - Basit YZ</title>
+    <title>Gerçek YZ - API Destekli</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #chat-container { width: 400px; height: 500px; background: #1e1e1e; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .message { padding: 10px 15px; border-radius: 10px; max-width: 80%; font-size: 14px; }
-        .user-msg { background: #007bff; align-self: flex-end; }
-        .ai-msg { background: #333; align-self: flex-start; }
-        #input-area { display: flex; padding: 15px; background: #252525; }
-        input { flex: 1; padding: 10px; border: none; border-radius: 5px; outline: none; background: #333; color: white; }
-        button { margin-left: 10px; padding: 10px 15px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #0056b3; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-container { width: 450px; height: 600px; background: #1e293b; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .message { padding: 12px 16px; border-radius: 15px; max-width: 85%; line-height: 1.5; font-size: 14px; }
+        .user-msg { background: #3b82f6; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
+        .ai-msg { background: #334155; align-self: flex-start; border-bottom-left-radius: 2px; }
+        #input-area { display: flex; padding: 20px; background: #1e293b; border-top: 1px solid #334155; }
+        input { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #0f172a; color: white; outline: none; }
+        button { margin-left: 10px; padding: 10px 20px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #64748b; }
     </style>
 </head>
 <body>
 
 <div id="chat-container">
     <div id="chat-window">
-        <div class="message ai-msg">Selam knk! Ben senin yerel yapay zekanım. Bana bir şeyler yaz!</div>
+        <div class="message ai-msg">Selam! Artık gerçek bir beynim var. İstediğin her şeyi sorabilirsin! 🚀</div>
     </div>
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="Bir şeyler yaz..." onkeypress="handleKeyPress(event)">
-        <button onclick="sendMessage()">Gönder</button>
+        <input type="text" id="user-input" placeholder="Bir soru sor..." onkeypress="handleKeyPress(event)">
+        <button id="send-btn" onclick="sendMessage()">Gönder</button>
     </div>
 </div>
 
 <script>
-    const responses = {
-        "selam": "Selam knk, naber?",
-        "merhaba": "Merhaba! Sana nasıl yardımcı olabilirim?",
-        "nasılsın": "İyiyim valla, devrelerim tıkır tıkır çalışıyor. Sen nasılsın?",
-        "adın ne": "Benim bir adım yok ama istersen bana 'Hızlı Bot' diyebilirsin.",
-        "yapay zeka nedir": "Yapay zeka, makinelerin insan gibi düşünmesini sağlayan teknolojidir knk.",
-        "kod yaz": "Zaten şu an bir kodun içindeyim, farkında mısın? 😎",
-        "bay bay": "Görüşürüz knk, kendine iyi bak!",
-        "varsayılan": "Bunu tam anlayamadım ama kulağa ilginç geliyor!"
-    };
+    const API_KEY = "API_KEY_BURAYA"; // Buraya Google AI Studio'dan aldığın keyi koy
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-    function sendMessage() {
+    async function sendMessage() {
         const input = document.getElementById("user-input");
         const chatWindow = document.getElementById("chat-window");
-        const text = input.value.trim().toLowerCase();
+        const btn = document.getElementById("send-btn");
+        const text = input.value.trim();
 
-        if (text === "") return;
+        if (!text || btn.disabled) return;
 
-        // Kullanıcı mesajını ekle
-        chatWindow.innerHTML += `<div class="message user-msg">${input.value}</div>`;
+        // Kullanıcı mesajını göster
+        chatWindow.innerHTML += `<div class="message user-msg">${text}</div>`;
         input.value = "";
+        chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        // Yapay zeka cevabı
-        setTimeout(() => {
-            let reply = responses["varsayılan"];
-            for (let key in responses) {
-                if (text.includes(key)) {
-                    reply = responses[key];
-                    break;
-                }
-            }
-            chatWindow.innerHTML += `<div class="message ai-msg">${reply}</div>`;
+        // Yükleniyor durumu
+        btn.disabled = true;
+        const loadingMsg = document.createElement("div");
+        loadingMsg.className = "message ai-msg";
+        loadingMsg.innerText = "Düşünüyorum...";
+        chatWindow.appendChild(loadingMsg);
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: text }] }]
+                })
+            });
+
+            const data = await response.json();
+            const aiResponse = data.candidates[0].content.parts[0].text;
+
+            // Cevabı yazdır
+            loadingMsg.innerText = aiResponse;
+        } catch (error) {
+            loadingMsg.innerText = "Hata oluştu knk, API anahtarını kontrol et!";
+            console.error(error);
+        } finally {
+            btn.disabled = false;
             chatWindow.scrollTop = chatWindow.scrollHeight;
-        }, 500);
+        }
     }
 
     function handleKeyPress(e) {
