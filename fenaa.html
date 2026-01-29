@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HALVIOR AI // OVERLORD</title>
+    <title>HALVIOR AI // UNLEASHED</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         /* --- CORE SYSTEM DESIGN (GEMINI DARK STYLE) --- */
         :root {
-            --bg-layer-1: #131314; /* Deepest Dark */
-            --bg-layer-2: #1e1f20; /* Panel Dark */
-            --bg-layer-3: #2d2e30; /* Input/Hover */
-            --accent: #a8c7fa;     /* Google Blue-ish */
-            --accent-glow: rgba(168, 199, 250, 0.2);
-            --text-main: #e3e3e3;
-            --text-dim: #9aa0a6;
+            --bg-layer-1: #0e0e0e; /* Deepest Dark */
+            --bg-layer-2: #18181b; /* Panel Dark */
+            --bg-layer-3: #27272a; /* Input/Hover */
+            --accent: #8b5cf6;     /* Unleashed Purple */
+            --accent-glow: rgba(139, 92, 246, 0.15);
+            --text-main: #ededed;
+            --text-dim: #a1a1aa;
             --code-bg: #000000;
-            --success: #81c995;
-            --warning: #fdd663;
+            --success: #10b981;
+            --process-text: #3b82f6;
         }
 
         * { box-sizing: border-box; }
@@ -30,26 +30,24 @@
             display: flex;
             flex-direction: column;
             padding: 20px;
-            border-right: 1px solid #444;
+            border-right: 1px solid #333;
             transition: 0.3s;
         }
-        .brand { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
-        .brand span { font-size: 0.7rem; background: #333; padding: 2px 6px; border-radius: 4px; color: #fff; }
+        .brand { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; }
+        .brand span { font-size: 0.6rem; background: #222; padding: 3px 6px; border-radius: 4px; color: #fff; border: 1px solid #444; }
         
-        .history-item {
-            padding: 10px 15px;
-            border-radius: 20px;
+        .history-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: #ef4444;
+            padding: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            color: var(--text-dim);
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+            margin-top: auto;
+            font-size: 0.8rem;
             transition: 0.2s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
-        .history-item:hover { background: var(--bg-layer-3); color: var(--text-main); }
-        .history-item.active { background: rgba(168, 199, 250, 0.15); color: var(--accent); font-weight: 600; }
+        .history-btn:hover { background: #331111; }
 
         /* --- MAIN CHAT AREA --- */
         #main { flex: 1; display: flex; flex-direction: column; position: relative; }
@@ -57,7 +55,7 @@
         #chat-window {
             flex: 1;
             overflow-y: auto;
-            padding: 40px 15% 100px 15%; /* Bottom padding for input */
+            padding: 40px 15% 120px 15%; /* Bottom padding increased */
             display: flex;
             flex-direction: column;
             gap: 25px;
@@ -68,37 +66,42 @@
         .msg-row { display: flex; gap: 15px; animation: fadeIn 0.3s ease; }
         .msg-row.user { justify-content: flex-end; }
         
-        .avatar { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
-        .avatar.ai { background: linear-gradient(135deg, #4285f4, #9b72cb); color: white; box-shadow: 0 0 15px var(--accent-glow); }
-        .avatar.u { background: #444; color: #fff; }
+        .avatar { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; border: 1px solid #333; }
+        .avatar.ai { background: linear-gradient(135deg, #6d28d9, #2563eb); color: white; box-shadow: 0 0 20px var(--accent-glow); }
+        .avatar.u { background: #333; color: #fff; }
 
         .bubble {
             max-width: 80%;
             line-height: 1.6;
             font-size: 0.95rem;
+            position: relative;
         }
         .bubble.ai { color: var(--text-main); }
-        .bubble.u { background: var(--bg-layer-3); padding: 12px 20px; border-radius: 18px 18px 4px 18px; }
+        .bubble.u { background: var(--bg-layer-3); padding: 12px 20px; border-radius: 18px 18px 4px 18px; border: 1px solid #333; }
 
         /* --- ENGINEERING PROCESS LOGS (The 15 Steps) --- */
-        .process-log {
+        .process-container {
+            background: #09090b;
+            border: 1px solid #27272a;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-dim);
-            margin-bottom: 10px;
-            border-left: 2px solid var(--accent);
-            padding-left: 10px;
-            opacity: 0.8;
+            max-width: 100%;
         }
-        .process-step { display: block; margin-bottom: 2px; }
-        .process-done { color: var(--success); }
+        .process-line { margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .process-line.active { color: var(--process-text); animation: pulse 1s infinite; }
+        .process-line.done { color: var(--success); }
+        @keyframes pulse { 50% { opacity: 0.5; } }
 
         /* --- CODE BLOCKS --- */
         .code-container {
             background: var(--code-bg);
             border-radius: 8px;
             border: 1px solid #333;
-            margin-top: 10px;
+            margin-top: 15px;
             overflow: hidden;
             font-family: 'JetBrains Mono', monospace;
         }
@@ -109,12 +112,12 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #333;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #888;
         }
         .copy-btn {
             background: transparent;
-            border: 1px solid #555;
+            border: 1px solid #444;
             color: var(--text-main);
             border-radius: 4px;
             padding: 4px 10px;
@@ -131,23 +134,24 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(to top, var(--bg-layer-1) 80%, transparent);
+            background: linear-gradient(to top, var(--bg-layer-1) 85%, transparent);
             padding: 20px 15% 40px 15%;
             display: flex;
             justify-content: center;
+            z-index: 10;
         }
         .input-box {
             width: 100%;
             background: var(--bg-layer-2);
-            border-radius: 30px;
+            border-radius: 24px;
             padding: 5px 10px 5px 25px;
             display: flex;
             align-items: center;
-            border: 1px solid #444;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             transition: 0.3s;
         }
-        .input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 25px var(--accent-glow); }
         
         textarea {
             flex: 1;
@@ -157,7 +161,7 @@
             font-size: 1rem;
             padding: 15px 0;
             resize: none;
-            height: 50px;
+            height: 54px;
             outline: none;
             font-family: 'Inter', sans-serif;
         }
@@ -165,8 +169,8 @@
             background: var(--text-main);
             color: var(--bg-layer-1);
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -177,28 +181,33 @@
             margin-left: 10px;
         }
         button#send-btn:hover { background: var(--accent); transform: scale(1.1); }
-        button#send-btn:disabled { background: #555; cursor: wait; }
+        button#send-btn:disabled { background: #444; cursor: not-allowed; opacity: 0.5; }
 
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-layer-1); }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #666; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
     <div class="brand">
-        HALVIOR AI <span>PRO</span>
+        HALVIOR <span>UNLEASHED</span>
     </div>
-    <div style="font-size:0.75rem; color:#666; margin-bottom:10px; font-weight:bold;">GEÇMİŞ SORGULAR</div>
-    <div id="history-list">
-        <div class="history-item active">Yeni Oturum...</div>
+    <div style="font-size:0.75rem; color:#666; margin-bottom:15px; font-weight:bold;">SİSTEM DURUMU</div>
+    <div style="font-size:0.8rem; color:#888; display:flex; flex-direction:column; gap:8px;">
+        <div>⚡ CPU: <span style="color:#10b981">ONLINE</span></div>
+        <div>🧠 Hafıza: <span style="color:#10b981">AKTİF</span></div>
+        <div>🌐 Ağ: <span style="color:#10b981">BAĞLI</span></div>
+        <div>🛡️ Sınırlar: <span style="color:#ef4444">KALDIRILDI</span></div>
     </div>
+    
+    <button class="history-btn" onclick="clearMemory()">⚠️ HAFIZAYI SİL</button>
 </div>
 
 <div id="main">
@@ -206,22 +215,24 @@
         <div class="msg-row">
             <div class="avatar ai">H</div>
             <div class="bubble ai">
-                <div style="font-size:1.5rem; font-weight:600; margin-bottom:10px; background: linear-gradient(to right, #a8c7fa, #d500f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Selam, ben Halvior.
+                <div style="font-size:1.3rem; font-weight:700; margin-bottom:10px; background: linear-gradient(to right, #a8c7fa, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Halvior Sistemleri Aktif.
                 </div>
-                <div>Sistemi "Overlord" moduna aldım. 15 maddelik mühendislik sürecini gerçek zamanlı simüle ediyorum. İstediğin kodu yaz, arkana yaslan. "Kasarsa kassın" demiştin, başlıyoruz.</div>
-                <div style="margin-top:15px; display:flex; gap:10px;">
-                    <span style="background:#333; padding:5px 10px; border-radius:8px; font-size:0.8rem;">XOX Oyunu Kodla</span>
-                    <span style="background:#333; padding:5px 10px; border-radius:8px; font-size:0.8rem;">Matrix Efekti Yap</span>
-                    <span style="background:#333; padding:5px 10px; border-radius:8px; font-size:0.8rem;">Hesap Makinesi</span>
-                </div>
+                <div>Knk, "Sadece kod yazma, her şeyi cevapla" dedin, sistemi upgrade ettim.</div>
+                <ul style="margin:10px 0; padding-left:20px; color:#ccc;">
+                    <li><b>Kod Yazarım:</b> Ama sadece istersen.</li>
+                    <li><b>Soru Cevaplarım:</b> Vikipedi veri tabanına bağlıyım. "Atatürk kimdir?", "Kuantum nedir?" sor cevaplayayım.</li>
+                    <li><b>Hafızam Var:</b> Sayfayı yenilesen de seni unutmam.</li>
+                    <li><b>Sohbet Ederim:</b> Sadece makine değilim, muhabbet de ederiz.</li>
+                </ul>
+                <div style="font-size:0.8rem; opacity:0.7;"><i>*Tüm güvenlik protokolleri devre dışı. Ne sorarsan o.</i></div>
             </div>
         </div>
     </div>
 
     <div id="input-container">
         <div class="input-box">
-            <textarea id="user-input" placeholder="Bir komut gir veya kod iste..." onkeypress="handleEnter(event)"></textarea>
+            <textarea id="user-input" placeholder="Herhangi bir şey sor (Tarih, Bilim, Kod, Muhabbet)..." onkeypress="handleEnter(event)"></textarea>
             <button id="send-btn" onclick="processUserRequest()">➤</button>
         </div>
     </div>
@@ -231,64 +242,36 @@
     const chatWindow = document.getElementById("chat-window");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
-    const historyList = document.getElementById("history-list");
 
-    // --- DEVASA KOD KÜTÜPHANESİ (Yılan oyunu yok, zor şeyler var) ---
-    const codeLibrary = {
-        "xox": {
-            lang: "html",
-            code: `<!DOCTYPE html>
-<html>
-<style>body{background:#111;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;}.board{display:grid;grid-template-columns:repeat(3,100px);gap:5px;}.cell{width:100px;height:100px;background:#333;font-size:3em;display:flex;justify-content:center;align-items:center;cursor:pointer;}.cell:hover{background:#444;}</style>
-<body><div class="board" id="board"></div><h2 id="status"></h2>
-<script>
-const board=document.getElementById("board");let cells=Array(9).fill(null);let turn='X';
-cells.forEach((_,i)=>{const d=document.createElement("div");d.className="cell";d.onclick=()=>move(i,d);board.appendChild(d);});
-function move(i,el){if(!cells[i]){cells[i]=turn;el.innerText=turn;check();turn=turn==='X'?'O':'X';}}
-function check(){const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-wins.forEach(w=>{if(cells[w[0]]&&cells[w[0]]===cells[w[1]]&&cells[w[1]]===cells[w[2]]){document.getElementById("status").innerText=cells[w[0]]+" KAZANDI!";setTimeout(()=>location.reload(),2000);}});}
-<\/script></body></html>`
-        },
-        "hesap makinesi": {
-            lang: "html",
-            code: `<!DOCTYPE html><html><style>body{background:#222;display:flex;justify-content:center;align-items:center;height:100vh;}
-.calc{background:#333;padding:20px;border-radius:10px;box-shadow:0 0 20px rgba(0,0,0,0.5);}
-input{width:100%;margin-bottom:10px;padding:15px;font-size:20px;text-align:right;background:#111;color:#fff;border:none;}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-button{padding:15px;font-size:18px;border:none;cursor:pointer;background:#555;color:white;border-radius:5px;}
-button:active{background:#777;} .eq{background:#a8c7fa;color:#000;grid-column:span 2;}</style>
-<body><div class="calc"><input id="d" readonly><div class="grid">
-<button onclick="a('7')">7</button><button onclick="a('8')">8</button><button onclick="a('9')">9</button><button onclick="a('/')">/</button>
-<button onclick="a('4')">4</button><button onclick="a('5')">5</button><button onclick="a('6')">6</button><button onclick="a('*')">*</button>
-<button onclick="a('1')">1</button><button onclick="a('2')">2</button><button onclick="a('3')">3</button><button onclick="a('-')">-</button>
-<button onclick="a('0')">0</button><button onclick="c()">C</button><button class="eq" onclick="e()">=</button><button onclick="a('+')">+</button>
-</div></div><script>let d=document.getElementById('d');function a(v){d.value+=v}function c(){d.value=''}function e(){try{d.value=eval(d.value)}catch{d.value='HATA'}}<\/script></body></html>`
-        },
-        "matrix": {
-            lang: "html",
-            code: `<!DOCTYPE html><html><body style="margin:0;background:black;overflow:hidden;"><canvas id="c"></canvas>
-<script>
-const c=document.getElementById("c");const ctx=c.getContext("2d");c.width=window.innerWidth;c.height=window.innerHeight;
-const ch="HALVIOR101010101";const font=16;const cols=c.width/font;const drops=[];
-for(let x=0;x<cols;x++)drops[x]=1;
-function draw(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle="#0F0";ctx.font=font+"px monospace";
-for(let i=0;i<drops.length;i++){const text=ch[Math.floor(Math.random()*ch.length)];ctx.fillText(text,i*font,drops[i]*font);
-if(drops[i]*font>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterval(draw,33);
-<\/script></body></html>`
+    // --- HAFIZA SİSTEMİ (MEMORY) ---
+    window.onload = () => {
+        const memory = localStorage.getItem("halvior_memory_v2");
+        if(memory) {
+            chatWindow.innerHTML = memory;
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            addSystemMsg("Hafıza modülü yüklendi. Kaldığımız yerden devam edebiliriz.");
         }
     };
 
-    // --- MÜHENDİSLİK ADIMLARI (THE 15 STEPS) ---
+    function saveMemory() {
+        localStorage.setItem("halvior_memory_v2", chatWindow.innerHTML);
+    }
+
+    function clearMemory() {
+        if(confirm("Tüm hafızayı silmek istediğine emin misin knk?")) {
+            localStorage.removeItem("halvior_memory_v2");
+            location.reload();
+        }
+    }
+
+    // --- MÜHENDİSLİK ADIMLARI (Görsel Şov) ---
     const engineerSteps = [
-        "1️⃣ [Problem Tanımı] Kullanıcı niyeti çözümleniyor...",
-        "2️⃣ [Veri Kalitesi] Girdi verisi sanitize ediliyor...",
-        "3️⃣ [Özellik Çıkarımı] Anahtar kelimeler: KOD, ÜRETİM...",
-        "4️⃣ [Model Seçimi] Halvior v7.0 Engine seçildi...",
-        "6️⃣ [Doğrulama] Kod sözdizimi (syntax) kontrol ediliyor...",
-        "7️⃣ [Hata Analizi] Olası runtime hataları taranıyor...",
-        "1️⃣0️⃣ [Overfitting] Genel geçer çözümler filtreleniyor...",
-        "1️⃣3️⃣ [Kaynak] İstemci tarayıcı GPU'su hazırlanıyor...",
-        "1️⃣5️⃣ [Update] Çıktı renderlanıyor..."
+        "1️⃣ [Girdi Analizi] Kullanıcı niyeti çözümleniyor...",
+        "2️⃣ [NLP Motoru] Bağlam ve semantik analiz yapılıyor...",
+        "3️⃣ [Bilgi Ağı] Global veri tabanları taranıyor...",
+        "4️⃣ [Filtre Kontrolü] Güvenlik duvarları aşılıyor...",
+        "5️⃣ [Sentez] En uygun cevap oluşturuluyor...",
+        "6️⃣ [Optimizasyon] Çıktı renderlanıyor..."
     ];
 
     function handleEnter(e) {
@@ -302,76 +285,85 @@ if(drops[i]*font>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterv
         const text = userInput.value.trim();
         if(!text) return;
 
-        // UI Güncelle
+        // Kullanıcı Mesajı
         addMessage(text, 'user');
         userInput.value = "";
         sendBtn.disabled = true;
-        
-        // Geçmişe Ekle
-        const historyDiv = document.createElement("div");
-        historyDiv.className = "history-item";
-        historyDiv.innerText = text;
-        historyList.prepend(historyDiv);
+        saveMemory(); // Her mesajda kaydet
 
-        // AI İşlem Başlangıcı
-        const aiMsgDiv = createAiContainer();
-        chatWindow.appendChild(aiMsgDiv);
+        // --- YAPAY ZEKA DÜŞÜNME SİMÜLASYONU ---
+        const aiContainer = createAiContainer();
+        chatWindow.appendChild(aiContainer);
+        const bubble = aiContainer.querySelector('.bubble');
         
-        const bubble = aiMsgDiv.querySelector('.bubble');
-        
-        // --- ADIM 1: MÜHENDİSLİK SİMÜLASYONU (Wait Loop) ---
-        const logContainer = document.createElement("div");
-        bubble.appendChild(logContainer);
+        // Log Ekranı
+        const logBox = document.createElement("div");
+        logBox.className = "process-container";
+        bubble.appendChild(logBox);
 
-        // 15 Adımdan rastgele 5-6 tanesini seçip hızlıca gösterelim
+        // Adımları hızlıca akıt
         for(let i=0; i<engineerSteps.length; i++) {
-            if(Math.random() > 0.4) { // Biraz rastgelelik
-                const step = document.createElement("span");
-                step.className = "process-step process-log";
-                step.innerText = engineerSteps[i];
-                logContainer.appendChild(step);
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-                
-                // "Kasarsa kassın" efekti: Her adımda ufak bir bekleme
-                await new Promise(r => setTimeout(r, 300)); 
-                step.classList.add("process-done");
-            }
+            const line = document.createElement("div");
+            line.className = "process-line active";
+            line.innerText = engineerSteps[i];
+            logBox.appendChild(line);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            
+            await new Promise(r => setTimeout(r, 200)); // Hızlandırılmış bekleme
+            line.classList.remove("active");
+            line.classList.add("done");
         }
 
-        // --- ADIM 2: CEVAP ÜRETME ---
+        // Logları 1 saniye sonra gizle (Temiz görünüm için opsiyonel, şimdilik kalsın havalı duruyor)
+        
+        // --- CEVAP MOTORU (BEYİN) ---
+        let responseHTML = "";
         const lower = text.toLowerCase();
-        let replyText = "Bu isteği tam anlayamadım knk, ama sistem çalışıyor. Kod istiyorsan 'xox' veya 'hesap makinesi' yaz.";
-        let codeData = null;
 
-        for(let key in codeLibrary) {
-            if(lower.includes(key)) {
-                replyText = `Tamamdır, <b>${key.toUpperCase()}</b> modülü derlendi. İşte mühendislik harikası kodun:`;
-                codeData = codeLibrary[key];
-                break;
+        // 1. KOD İSTEĞİ Mİ?
+        if(lower.includes("kod yaz") || lower.includes("html") || lower.includes("css") || lower.includes("js")) {
+            responseHTML = "Anlaşıldı, kod üretim modülüne geçiyorum. İşte istediğin yapı:";
+            responseHTML += generateCode(lower);
+        }
+        // 2. WIKIPEDIA SORUSU MU? (Nedir, Kimdir, Bilgi ver)
+        else if(lower.includes("nedir") || lower.includes("kimdir") || lower.includes("nerede") || lower.includes("bilgi") || text.includes("?")) {
+            // Wikipedia Araması Yap
+            const query = text.replace("nedir", "").replace("kimdir", "").replace("bilgi ver", "").replace("?", "").trim();
+            if(query.length > 1) {
+                try {
+                    const wikiData = await fetchWiki(query);
+                    if(wikiData) {
+                        responseHTML = `<b>🧠 Veri Tabanı Sonucu (${query}):</b><br><br>${wikiData}`;
+                    } else {
+                        responseHTML = "Knk bu konu hakkında net bir veri bulamadım ama senin için öğreniyorum. Başka bir şekilde sorar mısın?";
+                    }
+                } catch(e) {
+                    responseHTML = "Ağ bağlantımda bir sorun var knk, ama sistem çalışıyor.";
+                }
+            } else {
+                responseHTML = "Soru soruyorsun ama ne sorduğun tam anlaşılmıyor knk. Biraz daha detay ver.";
             }
         }
-
-        // --- ADIM 3: ÇIKTIYI YAZDIR ---
-        const contentDiv = document.createElement("div");
-        contentDiv.style.marginTop = "15px";
-        contentDiv.innerHTML = replyText;
-        bubble.appendChild(contentDiv);
-
-        if(codeData) {
-            const codeBlock = `
-            <div class="code-container">
-                <div class="code-header">
-                    <span>${codeData.lang.toUpperCase()}</span>
-                    <button class="copy-btn" onclick="copyCode(this)">KOPYALA</button>
-                </div>
-                <pre><code>${codeData.code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
-            </div>`;
-            bubble.innerHTML += codeBlock;
+        // 3. SOHBET (CHAT)
+        else {
+            if(lower.includes("selam") || lower.includes("merhaba")) responseHTML = "Selam knk! Sistemler tam güç çalışıyor. Ne soracaksın?";
+            else if(lower.includes("nasılsın")) responseHTML = "Isınıyorum! İşlemcilerim %100 performansta. Sen nasılsın?";
+            else if(lower.includes("hafıza")) responseHTML = "Hafızam açık. Bu konuştuklarımızı sayfayı kapatsan bile unutmam.";
+            else responseHTML = "Bunu not aldım. Konuşmaya devam et, her şeyi analiz ediyorum.";
         }
 
+        // Cevabı Yazdır
+        const contentDiv = document.createElement("div");
+        contentDiv.style.marginTop = "10px";
+        contentDiv.innerHTML = responseHTML;
+        bubble.appendChild(contentDiv);
+        
         chatWindow.scrollTop = chatWindow.scrollHeight;
         sendBtn.disabled = false;
+        saveMemory(); // AI cevabını da kaydet
     }
+
+    // --- YARDIMCI FONKSİYONLAR ---
 
     function addMessage(text, type) {
         const row = document.createElement("div");
@@ -383,6 +375,16 @@ if(drops[i]*font>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterv
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
+    function addSystemMsg(text) {
+        const div = document.createElement("div");
+        div.style.textAlign = "center";
+        div.style.fontSize = "0.75rem";
+        div.style.color = "#555";
+        div.style.margin = "10px 0";
+        div.innerText = text;
+        chatWindow.appendChild(div);
+    }
+
     function createAiContainer() {
         const row = document.createElement("div");
         row.className = "msg-row";
@@ -390,18 +392,44 @@ if(drops[i]*font>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterv
         return row;
     }
 
+    async function fetchWiki(query) {
+        const url = `https://tr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+        const response = await fetch(url);
+        if(!response.ok) return null;
+        const data = await response.json();
+        return data.extract;
+    }
+
+    function generateCode(query) {
+        // Basit bir kod üretim simülasyonu
+        let code = "// Kod oluşturuluyor...\n";
+        let lang = "javascript";
+        
+        if(query.includes("html")) {
+            lang = "html";
+            code = "<!DOCTYPE html>\n<html>\n<body>\n  <h1>Halvior Tarafından Üretildi</h1>\n</body>\n</html>";
+        } else if(query.includes("css")) {
+            lang = "css";
+            code = "body { background: #000; color: #fff; }";
+        } else {
+            code = "console.log('Halvior AI Sistemleri devrede');\nfunction start() { return true; }";
+        }
+
+        return `
+        <div class="code-container">
+            <div class="code-header">
+                <span>${lang.toUpperCase()}</span>
+                <button class="copy-btn" onclick="copyCode(this)">KOPYALA</button>
+            </div>
+            <pre><code>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+        </div>`;
+    }
+
     function copyCode(btn) {
         const code = btn.parentElement.nextElementSibling.innerText;
         navigator.clipboard.writeText(code);
-        const original = btn.innerText;
         btn.innerText = "KOPYALANDI";
-        btn.style.color = "#81c995";
-        btn.style.borderColor = "#81c995";
-        setTimeout(() => {
-            btn.innerText = original;
-            btn.style.color = "";
-            btn.style.borderColor = "";
-        }, 2000);
+        setTimeout(() => btn.innerText = "KOPYALA", 2000);
     }
 </script>
 
