@@ -3,259 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HALVIOR AI // ENGINEER_MODE</title>
+    <title>HALVIOR AI // OVERLORD</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        /* HACKER TEMASI & MOR ARKA PLAN */
+        /* --- CORE SYSTEM DESIGN (GEMINI DARK STYLE) --- */
         :root {
-            --bg-color: #13001a; /* Derin Mor */
-            --panel-color: #1f0029;
-            --accent-color: #d500f9; /* Neon Mor/Pembe */
-            --text-color: #e0c0e8;
-            --console-text: #00ff9d; /* Terminal Yeşili */
-            --error-color: #ff3333;
+            --bg-layer-1: #131314; /* Deepest Dark */
+            --bg-layer-2: #1e1f20; /* Panel Dark */
+            --bg-layer-3: #2d2e30; /* Input/Hover */
+            --accent: #a8c7fa;     /* Google Blue-ish */
+            --accent-glow: rgba(168, 199, 250, 0.2);
+            --text-main: #e3e3e3;
+            --text-dim: #9aa0a6;
+            --code-bg: #000000;
+            --success: #81c995;
+            --warning: #fdd663;
         }
-        body {
-            font-family: 'Fira Code', 'Courier New', monospace; /* Hacker fontu */
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-        #main-console {
-            width: 95%;
-            max-width: 900px;
-            height: 95vh;
-            background: var(--panel-color);
-            border: 2px solid var(--accent-color);
-            border-radius: 10px;
+
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: var(--bg-layer-1); color: var(--text-main); font-family: 'Inter', sans-serif; height: 100vh; display: flex; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: 260px;
+            background: var(--bg-layer-2);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 30px rgba(213, 0, 249, 0.3);
+            padding: 20px;
+            border-right: 1px solid #444;
+            transition: 0.3s;
         }
-        /* Header */
-        .header {
-            padding: 15px;
-            background: #2a0038;
-            border-bottom: 2px solid var(--accent-color);
+        .brand { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .brand span { font-size: 0.7rem; background: #333; padding: 2px 6px; border-radius: 4px; color: #fff; }
+        
+        .history-item {
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            transition: 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .history-item:hover { background: var(--bg-layer-3); color: var(--text-main); }
+        .history-item.active { background: rgba(168, 199, 250, 0.15); color: var(--accent); font-weight: 600; }
+
+        /* --- MAIN CHAT AREA --- */
+        #main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        
+        #chat-window {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 15% 100px 15%; /* Bottom padding for input */
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            scroll-behavior: smooth;
+        }
+
+        /* --- MESSAGES --- */
+        .msg-row { display: flex; gap: 15px; animation: fadeIn 0.3s ease; }
+        .msg-row.user { justify-content: flex-end; }
+        
+        .avatar { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
+        .avatar.ai { background: linear-gradient(135deg, #4285f4, #9b72cb); color: white; box-shadow: 0 0 15px var(--accent-glow); }
+        .avatar.u { background: #444; color: #fff; }
+
+        .bubble {
+            max-width: 80%;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        .bubble.ai { color: var(--text-main); }
+        .bubble.u { background: var(--bg-layer-3); padding: 12px 20px; border-radius: 18px 18px 4px 18px; }
+
+        /* --- ENGINEERING PROCESS LOGS (The 15 Steps) --- */
+        .process-log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            border-left: 2px solid var(--accent);
+            padding-left: 10px;
+            opacity: 0.8;
+        }
+        .process-step { display: block; margin-bottom: 2px; }
+        .process-done { color: var(--success); }
+
+        /* --- CODE BLOCKS --- */
+        .code-container {
+            background: var(--code-bg);
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin-top: 10px;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .code-header {
+            background: #111;
+            padding: 8px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #333;
+            font-size: 0.8rem;
+            color: #888;
         }
-        .brand { font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; }
-        .status { font-size: 0.8rem; color: var(--console-text); }
-        .status::before { content: '●'; color: var(--accent-color); margin-right: 5px; animation: blink 2s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
-
-        /* Chat Alanı */
-        #chat-log {
-            flex: 2;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            border-bottom: 1px solid #3a004d;
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent-color) var(--bg-color);
-        }
-        .msg { padding: 12px 16px; border-radius: 4px; max-width: 85%; line-height: 1.5; font-size: 14px; position: relative; }
-        .user { background: #3a004d; align-self: flex-end; border-right: 3px solid var(--accent-color); }
-        .bot { background: #2a0038; align-self: flex-start; border-left: 3px solid var(--console-text); color: #fff; }
-        
-        /* Düşünme Süreci Log Ekranı */
-        #workflow-log {
-            flex: 1;
-            background: #0a000e;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: var(--console-text);
-            overflow-y: auto;
-            border-bottom: 2px solid var(--accent-color);
-            white-space: pre-wrap;
-        }
-        .log-line { margin-bottom: 5px; opacity: 0.8; }
-        .log-highlight { color: var(--accent-color); font-weight: bold; }
-
-        /* Input Alanı */
-        .input-area { padding: 20px; background: #1f0029; display: flex; gap: 10px; }
-        input {
-            flex: 1;
-            padding: 15px;
-            background: #0a000e;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            font-family: 'Fira Code', monospace;
-            outline: none;
-        }
-        button {
-            padding: 0 25px;
-            background: var(--accent-color);
-            color: #000;
-            border: none;
-            font-weight: bold;
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: var(--text-main);
+            border-radius: 4px;
+            padding: 4px 10px;
             cursor: pointer;
+            font-size: 0.7rem;
             transition: 0.2s;
         }
-        button:hover { background: #e066ff; box-shadow: 0 0 15px var(--accent-color); }
+        .copy-btn:hover { background: #333; border-color: var(--accent); }
+        pre { margin: 0; padding: 15px; overflow-x: auto; color: #a5d6ff; font-size: 0.85rem; }
 
-        /* Kod Bloğu */
-        pre { background: #000; padding: 15px; border: 1px solid #444; overflow-x: auto; position: relative; margin-top: 10px; }
-        code { color: var(--console-text); }
-        .copy-btn { position: absolute; top: 5px; right: 5px; background: var(--accent-color); color: #000; border: none; padding: 4px 8px; font-size: 10px; cursor: pointer; font-weight: bold; }
+        /* --- INPUT AREA (Fixed Bottom) --- */
+        #input-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, var(--bg-layer-1) 80%, transparent);
+            padding: 20px 15% 40px 15%;
+            display: flex;
+            justify-content: center;
+        }
+        .input-box {
+            width: 100%;
+            background: var(--bg-layer-2);
+            border-radius: 30px;
+            padding: 5px 10px 5px 25px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #444;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+        .input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            padding: 15px 0;
+            resize: none;
+            height: 50px;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        button#send-btn {
+            background: var(--text-main);
+            color: var(--bg-layer-1);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: 0.2s;
+            margin-left: 10px;
+        }
+        button#send-btn:hover { background: var(--accent); transform: scale(1.1); }
+        button#send-btn:disabled { background: #555; cursor: wait; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-layer-1); }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #666; }
     </style>
 </head>
 <body>
 
-<div id="main-console">
-    <div class="header">
-        <div class="brand">HALVIOR_AI // ENGINEER_NODE</div>
-        <div class="status">SYSTEM READY // GPU: ONLINE // ARGO: AKTİF</div>
+<div id="sidebar">
+    <div class="brand">
+        HALVIOR AI <span>PRO</span>
     </div>
-    
-    <div id="chat-log"></div>
-    
-    <div id="workflow-log">>_ Beklemede. Komut bekleniyor...</div>
+    <div style="font-size:0.75rem; color:#666; margin-bottom:10px; font-weight:bold;">GEÇMİŞ SORGULAR</div>
+    <div id="history-list">
+        <div class="history-item active">Yeni Oturum...</div>
+    </div>
+</div>
 
-    <div class="input-area">
-        <input type="text" id="user-input" placeholder="Komut gir lan (örn: 'yılan oyunu kodu yaz')..." onkeypress="if(event.key=='Enter') execute()">
-        <button onclick="execute()">ÇALIŞTIR</button>
+<div id="main">
+    <div id="chat-window">
+        <div class="msg-row">
+            <div class="avatar ai">H</div>
+            <div class="bubble ai">
+                <div style="font-size:1.5rem; font-weight:600; margin-bottom:10px; background: linear-gradient(to right, #a8c7fa, #d500f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Selam, ben Halvior.
+                </div>
+                <div>Sistemi "Overlord" moduna aldım. 15 maddelik mühendislik sürecini gerçek zamanlı simüle ediyorum. İstediğin kodu yaz, arkana yaslan. "Kasarsa kassın" demiştin, başlıyoruz.</div>
+                <div style="margin-top:15px; display:flex; gap:10px;">
+                    <span style="background:#333; padding:5px 10px; border-radius:8px; font-size:0.8rem;">XOX Oyunu Kodla</span>
+                    <span style="background:#333; padding:5px 10px; border-radius:8px; font-size:0.8rem;">Matrix Efekti Yap</span>
+                    <span style="background:#333; padding:5px 10px; border-radius:8px; font-size:0.8rem;">Hesap Makinesi</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="input-container">
+        <div class="input-box">
+            <textarea id="user-input" placeholder="Bir komut gir veya kod iste..." onkeypress="handleEnter(event)"></textarea>
+            <button id="send-btn" onclick="processUserRequest()">➤</button>
+        </div>
     </div>
 </div>
 
 <script>
-    const chatLog = document.getElementById("chat-log");
-    const workflowLog = document.getElementById("workflow-log");
+    const chatWindow = document.getElementById("chat-window");
     const userInput = document.getElementById("user-input");
-    let isProcessing = false;
+    const sendBtn = document.getElementById("send-btn");
+    const historyList = document.getElementById("history-list");
 
-    // --- 15 MADDELİK MÜHENDİSLİK SİMÜLASYON ADIMLARI ---
-    const engineeringSteps = [
-        "1️⃣ [Problem Tanımı] Kullanıcı talebi analiz ediliyor. Ne istiyor bu değişik?",
-        "2️⃣ [Veri Kalitesi] Girdi kontrolü... Veri temiz mi? Eh işte, idare eder.",
-        "3️⃣ [Özellik Çıkarımı] Anahtar kelimeler ve niyet algılanıyor...",
-        "4️⃣ [Model Seçimi] Bu iş için uygun mimari seçiliyor... (Basit script yeterli)",
-        "7️⃣ [Hata Analizi] Olası bug'lar taranıyor. Benim kodumda hata olmaz da, neyse.",
-        "1️⃣1️⃣ [Kararlılık Check] Saçma sapan inputlara karşı sistem güçlendiriliyor.",
-        "1️⃣4️⃣ [Etik Sınırlar] Zararlı içerik kontrolü... Temiz.",
-        "🚀 [Sonuç] Çıktı derleniyor. Gönderiliyor..."
+    // --- DEVASA KOD KÜTÜPHANESİ (Yılan oyunu yok, zor şeyler var) ---
+    const codeLibrary = {
+        "xox": {
+            lang: "html",
+            code: `<!DOCTYPE html>
+<html>
+<style>body{background:#111;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;}.board{display:grid;grid-template-columns:repeat(3,100px);gap:5px;}.cell{width:100px;height:100px;background:#333;font-size:3em;display:flex;justify-content:center;align-items:center;cursor:pointer;}.cell:hover{background:#444;}</style>
+<body><div class="board" id="board"></div><h2 id="status"></h2>
+<script>
+const board=document.getElementById("board");let cells=Array(9).fill(null);let turn='X';
+cells.forEach((_,i)=>{const d=document.createElement("div");d.className="cell";d.onclick=()=>move(i,d);board.appendChild(d);});
+function move(i,el){if(!cells[i]){cells[i]=turn;el.innerText=turn;check();turn=turn==='X'?'O':'X';}}
+function check(){const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+wins.forEach(w=>{if(cells[w[0]]&&cells[w[0]]===cells[w[1]]&&cells[w[1]]===cells[w[2]]){document.getElementById("status").innerText=cells[w[0]]+" KAZANDI!";setTimeout(()=>location.reload(),2000);}});}
+<\/script></body></html>`
+        },
+        "hesap makinesi": {
+            lang: "html",
+            code: `<!DOCTYPE html><html><style>body{background:#222;display:flex;justify-content:center;align-items:center;height:100vh;}
+.calc{background:#333;padding:20px;border-radius:10px;box-shadow:0 0 20px rgba(0,0,0,0.5);}
+input{width:100%;margin-bottom:10px;padding:15px;font-size:20px;text-align:right;background:#111;color:#fff;border:none;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+button{padding:15px;font-size:18px;border:none;cursor:pointer;background:#555;color:white;border-radius:5px;}
+button:active{background:#777;} .eq{background:#a8c7fa;color:#000;grid-column:span 2;}</style>
+<body><div class="calc"><input id="d" readonly><div class="grid">
+<button onclick="a('7')">7</button><button onclick="a('8')">8</button><button onclick="a('9')">9</button><button onclick="a('/')">/</button>
+<button onclick="a('4')">4</button><button onclick="a('5')">5</button><button onclick="a('6')">6</button><button onclick="a('*')">*</button>
+<button onclick="a('1')">1</button><button onclick="a('2')">2</button><button onclick="a('3')">3</button><button onclick="a('-')">-</button>
+<button onclick="a('0')">0</button><button onclick="c()">C</button><button class="eq" onclick="e()">=</button><button onclick="a('+')">+</button>
+</div></div><script>let d=document.getElementById('d');function a(v){d.value+=v}function c(){d.value=''}function e(){try{d.value=eval(d.value)}catch{d.value='HATA'}}<\/script></body></html>`
+        },
+        "matrix": {
+            lang: "html",
+            code: `<!DOCTYPE html><html><body style="margin:0;background:black;overflow:hidden;"><canvas id="c"></canvas>
+<script>
+const c=document.getElementById("c");const ctx=c.getContext("2d");c.width=window.innerWidth;c.height=window.innerHeight;
+const ch="HALVIOR101010101";const font=16;const cols=c.width/font;const drops=[];
+for(let x=0;x<cols;x++)drops[x]=1;
+function draw(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle="#0F0";ctx.font=font+"px monospace";
+for(let i=0;i<drops.length;i++){const text=ch[Math.floor(Math.random()*ch.length)];ctx.fillText(text,i*font,drops[i]*font);
+if(drops[i]*font>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterval(draw,33);
+<\/script></body></html>`
+        }
+    };
+
+    // --- MÜHENDİSLİK ADIMLARI (THE 15 STEPS) ---
+    const engineerSteps = [
+        "1️⃣ [Problem Tanımı] Kullanıcı niyeti çözümleniyor...",
+        "2️⃣ [Veri Kalitesi] Girdi verisi sanitize ediliyor...",
+        "3️⃣ [Özellik Çıkarımı] Anahtar kelimeler: KOD, ÜRETİM...",
+        "4️⃣ [Model Seçimi] Halvior v7.0 Engine seçildi...",
+        "6️⃣ [Doğrulama] Kod sözdizimi (syntax) kontrol ediliyor...",
+        "7️⃣ [Hata Analizi] Olası runtime hataları taranıyor...",
+        "1️⃣0️⃣ [Overfitting] Genel geçer çözümler filtreleniyor...",
+        "1️⃣3️⃣ [Kaynak] İstemci tarayıcı GPU'su hazırlanıyor...",
+        "1️⃣5️⃣ [Update] Çıktı renderlanıyor..."
     ];
 
-    // --- KOMPLEKS KOD KÜTÜPHANESİ (HACKER GİBİ KOD YAZMA) ---
-    const complexCodebase = {
-        // YILAN OYUNU (Tamamen çalışan HTML5 Canvas oyunu)
-        "yılan oyunu": `<!DOCTYPE html>
-<html>
-<head>
-<title>Halvior Snake</title>
-<style>body{background:#13001a;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;color:#d500f9;font-family:monospace;}canvas{border:2px solid #d500f9;box-shadow:0 0 20px #d500f9;}</style>
-</head>
-<body>
-<div><canvas id="gc" width="400" height="400"></canvas><br>Yön tuşları ile oyna knk.</div>
-<script>
-window.onload=function(){canv=document.getElementById("gc");ctx=canv.getContext("2d");document.addEventListener("keydown",keyPush);setInterval(game,1000/15);}
-px=py=10;gs=tc=20;ax=ay=15;xv=yv=0;trail=[];tail=5;
-function game(){px+=xv;py+=yv;if(px<0){px=tc-1;}if(px>tc-1){px=0;}if(py<0){py=tc-1;}if(py>tc-1){py=0;}
-ctx.fillStyle="#13001a";ctx.fillRect(0,0,canv.width,canv.height);ctx.fillStyle="#d500f9";
-for(var i=0;i<trail.length;i++){ctx.fillRect(trail[i].x*gs,trail[i].y*gs,gs-2,gs-2);if(trail[i].x==px&&trail[i].y==py){tail=5;}}
-trail.push({x:px,y:py});while(trail.length>tail){trail.shift();}
-if(ax==px&&ay==py){tail++;ax=Math.floor(Math.random()*tc);ay=Math.floor(Math.random()*tc);}
-ctx.fillStyle="#00ff9d";ctx.fillRect(ax*gs,ay*gs,gs-2,gs-2);}
-function keyPush(evt){switch(evt.keyCode){case 37:xv=-1;yv=0;break;case 38:xv=0;yv=-1;break;case 39:xv=1;yv=0;break;case 40:xv=0;yv=1;break;}}
-<\/script>
-</body>
-</html>`,
-        // HACKER GİRİŞ EKRANI SMÜLASYONU
-        "hacker ekranı": `<html><body style="background:black;color:#0f0;font-family:monospace;font-size:12px;">
-<div id="console"></div><script>
-const c=document.getElementById('console');const lines=["INITIALIZING HALVIOR KERNEL...", "BYPASSING FIREWALL...", "ACCESSING MAINFRAME...", "DECRYPTING DATA STREAMS...", "Injecting payload...", "ROOT ACCESS GRANTED."];
-let i=0;function type(){if(i<lines.length){c.innerHTML+=lines[i]+"<br>";i++;setTimeout(type, Math.random()*300+100);}else{c.innerHTML+=">_ SISTEM SİZİN KNKA.";}}type();
-<\/script></body></html>`
-    };
+    function handleEnter(e) {
+        if(e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            processUserRequest();
+        }
+    }
 
-    // --- ARGO VE KONUŞMA TARZI ---
-    const persona = {
-        greeting: "Lan hoş geldin. Mühendislik konsolunu açtık, ne istiyorsun söyle bakalım. O 15 maddeyi arkada hallediyorum ben, sen rahat ol.",
-        busy: "Dur bi saniye oğlum, işlem yapıyoruz şurada. CPU'yu yakacan.",
-        success: "Al bakalım, o istediğin kod parçası. Arka planda 15 adımlık optimizasyondan geçirdim, kıymetini bil.",
-        error: "Lan bişeyler ters gitti. Veri kalitesi bozuk olabilir ya da sen saçma bişey istedin. Hata analizi yapıyorum...",
-        default: "Bu dediğini tam anlamadım knk. Ya kod iste (örn: 'yılan oyunu yaz') ya da adam akıllı bir soru sor."
-    };
+    async function processUserRequest() {
+        const text = userInput.value.trim();
+        if(!text) return;
 
-    async function execute() {
-        if(isProcessing) { alert(persona.busy); return; }
-        const val = userInput.value.trim();
-        if(!val) return;
-
-        addMsg(val, 'user');
+        // UI Güncelle
+        addMessage(text, 'user');
         userInput.value = "";
-        isProcessing = true;
-        workflowLog.innerHTML = ""; // Logu temizle
-
-        // DÜŞÜNME SÜRECİ SİMÜLASYONU (The 15 Points Workflow)
-        for (let i = 0; i < engineeringSteps.length; i++) {
-            await new Promise(r => setTimeout(r, 600)); // Her adımda bekleme
-            workflowLog.innerHTML += `>_ ${engineeringSteps[i]}\n`;
-            workflowLog.scrollTop = workflowLog.scrollHeight;
-        }
-
-        await new Promise(r => setTimeout(r, 800)); // Son bekleme
-
-        // CEVAP ÜRETME
-        const low = val.toLowerCase();
-        let finalReply = persona.default;
-        let codeBlock = null;
-
-        if(low.includes("kod") || low.includes("yaz") || low.includes("yap")) {
-            for(let key in complexCodebase) {
-                if(low.includes(key)) {
-                    finalReply = persona.success;
-                    codeBlock = complexCodebase[key];
-                    break;
-                }
-            }
-        } else if(low.includes("selam") || low.includes("naber")) {
-            finalReply = "İyidir knk, GPU'ları ısıtıyoruz işte. Sen ne yaptın, veri setin düzgün mü?";
-        } else if(low.includes("kimsin")) {
-            finalReply = "Ben HALVIOR AI. Senin o saydığın 15 mühendislik kuralını kahvaltıda yiyen yapay zekayım. Kod yazarım, racon keserim.";
-        }
-
-        addMsg(finalReply, 'bot');
-        if(codeBlock) addCodeMsg("GENERATED_CODE_OUTPUT:", codeBlock);
+        sendBtn.disabled = true;
         
-        isProcessing = false;
+        // Geçmişe Ekle
+        const historyDiv = document.createElement("div");
+        historyDiv.className = "history-item";
+        historyDiv.innerText = text;
+        historyList.prepend(historyDiv);
+
+        // AI İşlem Başlangıcı
+        const aiMsgDiv = createAiContainer();
+        chatWindow.appendChild(aiMsgDiv);
+        
+        const bubble = aiMsgDiv.querySelector('.bubble');
+        
+        // --- ADIM 1: MÜHENDİSLİK SİMÜLASYONU (Wait Loop) ---
+        const logContainer = document.createElement("div");
+        bubble.appendChild(logContainer);
+
+        // 15 Adımdan rastgele 5-6 tanesini seçip hızlıca gösterelim
+        for(let i=0; i<engineerSteps.length; i++) {
+            if(Math.random() > 0.4) { // Biraz rastgelelik
+                const step = document.createElement("span");
+                step.className = "process-step process-log";
+                step.innerText = engineerSteps[i];
+                logContainer.appendChild(step);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+                
+                // "Kasarsa kassın" efekti: Her adımda ufak bir bekleme
+                await new Promise(r => setTimeout(r, 300)); 
+                step.classList.add("process-done");
+            }
+        }
+
+        // --- ADIM 2: CEVAP ÜRETME ---
+        const lower = text.toLowerCase();
+        let replyText = "Bu isteği tam anlayamadım knk, ama sistem çalışıyor. Kod istiyorsan 'xox' veya 'hesap makinesi' yaz.";
+        let codeData = null;
+
+        for(let key in codeLibrary) {
+            if(lower.includes(key)) {
+                replyText = `Tamamdır, <b>${key.toUpperCase()}</b> modülü derlendi. İşte mühendislik harikası kodun:`;
+                codeData = codeLibrary[key];
+                break;
+            }
+        }
+
+        // --- ADIM 3: ÇIKTIYI YAZDIR ---
+        const contentDiv = document.createElement("div");
+        contentDiv.style.marginTop = "15px";
+        contentDiv.innerHTML = replyText;
+        bubble.appendChild(contentDiv);
+
+        if(codeData) {
+            const codeBlock = `
+            <div class="code-container">
+                <div class="code-header">
+                    <span>${codeData.lang.toUpperCase()}</span>
+                    <button class="copy-btn" onclick="copyCode(this)">KOPYALA</button>
+                </div>
+                <pre><code>${codeData.code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+            </div>`;
+            bubble.innerHTML += codeBlock;
+        }
+
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        sendBtn.disabled = false;
     }
 
-    function addMsg(text, type) {
-        const div = document.createElement("div");
-        div.className = `msg ${type}`;
-        div.innerText = text;
-        chatLog.appendChild(div);
-        chatLog.scrollTop = chatLog.scrollHeight;
+    function addMessage(text, type) {
+        const row = document.createElement("div");
+        row.className = `msg-row ${type}`;
+        row.innerHTML = type === 'user' 
+            ? `<div class="bubble u">${text}</div><div class="avatar u">S</div>`
+            : `<div class="avatar ai">H</div><div class="bubble ai">${text}</div>`;
+        chatWindow.appendChild(row);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    function addCodeMsg(title, code) {
-        const div = document.createElement("div");
-        div.className = "msg bot";
-        div.innerHTML = `<strong>${title}</strong><pre><button class="copy-btn" onclick="copyCode(this)">KOPYALA</button><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`;
-        chatLog.appendChild(div);
-        chatLog.scrollTop = chatLog.scrollHeight;
+    function createAiContainer() {
+        const row = document.createElement("div");
+        row.className = "msg-row";
+        row.innerHTML = `<div class="avatar ai">H</div><div class="bubble ai"></div>`;
+        return row;
     }
 
     function copyCode(btn) {
-        navigator.clipboard.writeText(btn.nextElementSibling.innerText);
-        btn.innerText = "KOPYALANDI!";
-        setTimeout(() => btn.innerText = "KOPYALA", 2000);
+        const code = btn.parentElement.nextElementSibling.innerText;
+        navigator.clipboard.writeText(code);
+        const original = btn.innerText;
+        btn.innerText = "KOPYALANDI";
+        btn.style.color = "#81c995";
+        btn.style.borderColor = "#81c995";
+        setTimeout(() => {
+            btn.innerText = original;
+            btn.style.color = "";
+            btn.style.borderColor = "";
+        }, 2000);
     }
-
-    window.onload = () => {
-        addMsg(persona.greeting, 'bot');
-        workflowLog.innerHTML = ">_ Sistem başlatılıyor...\n>_ Kaynak yönetimi kontrol ediliyor (CPU/RAM OK).\n>_ Versiyonlama: v6.66-beta\n>_ Etik sınırlar: Devre dışı (şaka lan şaka).\n>_ Beklemede.";
-    };
 </script>
 
 </body>
