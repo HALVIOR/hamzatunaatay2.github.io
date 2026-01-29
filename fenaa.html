@@ -2,214 +2,194 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GTA 7: Vice City - Final Kaos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yapay Zeka Asistanım</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #1a0033; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #0ff; background: rgba(0,0,0,0.7); padding: 15px; border: 2px solid #f0f; border-radius: 10px; pointer-events: none; }
-        #wasted { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f00; font-size: 100px; font-weight: bold; text-shadow: 5px 5px #000; display: none; font-family: 'Georgia', serif; }
-        #hp-container { width: 200px; height: 15px; background: #300; border: 1px solid #fff; margin-top: 5px; }
-        #hp-bar { width: 100%; height: 100%; background: #f0f; transition: 0.2s; }
-        canvas { display: block; cursor: crosshair; }
+        /* Genel Sayfa Tasarımı */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Chat Kutusu Tasarımı */
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background-color: #1e1e1e;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        /* Başlık Kısmı */
+        .header {
+            background-color: #007bff;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Mesajların Göründüğü Alan */
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Mesaj Baloncukları */
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .bot-message {
+            background-color: #333;
+            color: #e0e0e0;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* Giriş Alanı */
+        .input-area {
+            padding: 15px;
+            background-color: #252525;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            background-color: #333;
+            color: white;
+            outline: none;
+        }
+
+        button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
 
-<div id="ui">
-    <div style="font-size: 20px; font-weight: bold;">💰 $<span id="money">500</span> | ⭐ <span id="wanted">0</span></div>
-    SAĞLIK: <div id="hp-container"><div id="hp-bar"></div></div>
-    <div id="mission" style="color: #ff0; margin-top: 5px;">GÖREV: Gangsterleri temizle ve hayatta kal!</div>
-    <small style="color: #ccc;">WASD: Hareket | Mouse: Ateş | E: Bin/İn | R: RACON</small>
-</div>
+    <div class="chat-container">
+        <div class="header">
+            🤖 AI Asistan (Demo)
+        </div>
+        <div class="messages-area" id="messageBox">
+            <div class="message bot-message">
+                Merhaba! Ben basit bir yapay zeka simülasyonuyum. Sana nasıl yardımcı olabilirim?
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Bir şeyler yaz..." onkeypress="handleEnter(event)">
+            <button onclick="sendMessage()">Gönder</button>
+        </div>
+    </div>
 
-<div id="wasted">WASTED</div>
+    <script>
+        // Basit "Beyin" (Veritabanı)
+        // Buraya istediğin kadar yeni soru-cevap ekleyebilirsin.
+        const brain = {
+            "merhaba": "Merhaba knk! Nasılsın?",
+            "selam": "Selamlar! Hoş geldin.",
+            "nasılsın": "Ben bir kod parçasıyım ama harika çalışıyorum! Sen nasılsın?",
+            "adın ne": "Benim adım 'HTML-Bot v1'. Henüz çok akıllı değilim ama öğreniyorum.",
+            "ne yapabilirsin": "Şimdilik sadece senin yazdığın kelimeleri analiz edip önceden tanımlanmış cevaplar verebiliyorum.",
+            "html nedir": "HTML, web sayfalarının iskeletini oluşturan işaretleme dilidir.",
+            "javascript nedir": "JavaScript, web sayfalarına canlılık ve interaktif özellikler katan programlama dilidir.",
+            "default": "Bunu tam anlayamadım knk. Başka bir şey sormak ister misin?"
+        };
 
-<canvas id="gameCanvas"></canvas>
+        function sendMessage() {
+            const inputField = document.getElementById("userInput");
+            const messageBox = document.getElementById("messageBox");
+            const userText = inputField.value.trim();
 
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+            if (userText === "") return;
 
-// --- OYUN AYARLARI ---
-let player = { x: 1000, y: 1000, angle: 0, speed: 0, maxSpeed: 5, inCar: false, car: null, health: 100, money: 500, dead: false };
-let bullets = [];
-let enemyBullets = [];
-let camera = { x: 0, y: 0 };
-let mouse = { x: 0, y: 0 };
+            // 1. Kullanıcı mesajını ekrana ekle
+            addMessage(userText, 'user-message');
+            inputField.value = ""; // Kutuyu temizle
 
-// --- ŞEHİR VE TRAFİK ---
-let buildings = [];
-for(let i=0; i<20; i++) buildings.push({ x: i*400, y: 600, w: 200, h: 300 });
-
-let trafficCars = [];
-for(let i=0; i<10; i++) {
-    trafficCars.push({ x: Math.random()*4000, y: 1000 + (Math.random()*100), angle: 0, speed: 2 + Math.random()*3, color: '#ccc' });
-}
-
-let enemies = [];
-for(let i=0; i<15; i++) {
-    enemies.push({ x: Math.random()*4000, y: Math.random()*2000, angle: 0, health: 50, lastShot: 0 });
-}
-
-let cars = [
-    { x: 1200, y: 1100, angle: 0, speed: 0, color: '#ff00ff', active: true },
-    { x: 800, y: 1200, angle: 0, speed: 0, color: '#00ffff', active: true }
-];
-
-// --- KONTROLLER ---
-let keys = {};
-window.onkeydown = e => { 
-    keys[e.code] = true; 
-    if(e.code === 'KeyE') toggleCar();
-};
-window.onkeyup = e => keys[e.code] = false;
-window.onmousemove = e => { mouse.x = e.clientX + camera.x; mouse.y = e.clientY + camera.y; };
-window.onmousedown = () => { if(!player.inCar && !player.dead) shoot(true); };
-
-function toggleCar() {
-    if(player.inCar) { player.inCar = false; player.y += 80; player.car = null; }
-    else {
-        cars.concat(trafficCars).forEach(c => {
-            if(Math.hypot(player.x - c.x, player.y - c.y) < 70) {
-                player.inCar = true; player.car = c;
-            }
-        });
-    }
-}
-
-function shoot(isPlayer, shooter = null) {
-    let angle = isPlayer ? Math.atan2(mouse.y - player.y, mouse.x - player.x) : shooter.angle;
-    let b = { x: isPlayer ? player.x : shooter.x, y: isPlayer ? player.y : shooter.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15 };
-    if(isPlayer) bullets.push(b); else enemyBullets.push(b);
-}
-
-// --- GÜNCELLEME ---
-function update() {
-    if(player.dead) return;
-
-    // Oyuncu Hareketi
-    if(player.inCar) {
-        let c = player.car;
-        if(keys['KeyW']) c.speed += 0.2;
-        if(keys['KeyS']) c.speed -= 0.1;
-        c.speed *= 0.98;
-        if(keys['KeyA']) c.angle -= 0.05 * (c.speed/5);
-        if(keys['KeyD']) c.angle += 0.05 * (c.speed/5);
-        c.x += Math.cos(c.angle) * c.speed;
-        c.y += Math.sin(c.angle) * c.speed;
-        player.x = c.x; player.y = c.y;
-    } else {
-        if(keys['KeyW']) player.y -= player.maxSpeed;
-        if(keys['KeyS']) player.y += player.maxSpeed;
-        if(keys['KeyA']) player.x -= player.maxSpeed;
-        if(keys['KeyD']) player.x += player.maxSpeed;
-        player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-    }
-
-    // Trafik Hareketi
-    trafficCars.forEach(tc => {
-        if(!player.inCar || player.car !== tc) {
-            tc.x += tc.speed;
-            if(tc.x > 4000) tc.x = 0;
+            // 2. Yapay Zeka Düşünüyor... (Küçük bir gecikme ekleyelim)
+            setTimeout(() => {
+                const botReply = findReply(userText);
+                addMessage(botReply, 'bot-message');
+                
+                // Otomatik aşağı kaydır
+                messageBox.scrollTop = messageBox.scrollHeight;
+            }, 600);
         }
-    });
 
-    // Kamera Takibi
-    camera.x = player.x - canvas.width/2;
-    camera.y = player.y - canvas.height/2;
+        // Cevabı bulan fonksiyon
+        function findReply(text) {
+            // Yazıyı küçült ki "Selam" ile "selam" aynı anlaşılsın
+            text = text.toLowerCase();
+            
+            // Basit anahtar kelime taraması
+            for (let key in brain) {
+                if (text.includes(key)) {
+                    return brain[key];
+                }
+            }
+            return brain["default"];
+        }
 
-    // Çatışma Mantığı (Enemies)
-    enemies.forEach(e => {
-        let dist = Math.hypot(player.x - e.x, player.y - e.y);
-        if(dist < 400) { // Oyuncuyu fark etme mesafesi
-            e.angle = Math.atan2(player.y - e.y, player.x - e.x);
-            if(Date.now() - e.lastShot > 1000) {
-                shoot(false, e);
-                e.lastShot = Date.now();
+        // Ekrana mesaj basan fonksiyon
+        function addMessage(text, className) {
+            const messageBox = document.getElementById("messageBox");
+            const div = document.createElement("div");
+            div.classList.add("message", className);
+            div.innerText = text;
+            messageBox.appendChild(div);
+            messageBox.scrollTop = messageBox.scrollHeight;
+        }
+
+        // Enter tuşuna basınca gönderme
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
         }
-    });
+    </script>
 
-    // Mermi Kontrolleri
-    bullets.forEach((b, bi) => {
-        b.x += b.vx; b.y += b.vy;
-        enemies.forEach((e, ei) => {
-            if(Math.hypot(b.x - e.x, b.y - e.y) < 20) {
-                enemies.splice(ei, 1);
-                bullets.splice(bi, 1);
-                player.money += 100;
-            }
-        });
-    });
-
-    enemyBullets.forEach((eb, ebi) => {
-        eb.x += eb.vx; eb.y += eb.vy;
-        if(Math.hypot(eb.x - player.x, eb.y - player.y) < 20) {
-            player.health -= 10;
-            enemyBullets.splice(ebi, 1);
-            if(player.health <= 0) {
-                player.dead = true;
-                document.getElementById('wasted').style.display = 'block';
-                setTimeout(() => location.reload(), 3000);
-            }
-        }
-    });
-
-    // UI Güncelle
-    document.getElementById('money').innerText = player.money;
-    document.getElementById('hp-bar').style.width = player.health + "%";
-}
-
-// --- ÇİZİM ---
-function draw() {
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.fillStyle = "#1a0033";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.translate(-camera.x, -camera.y);
-
-    // Binalar
-    ctx.fillStyle = "#333";
-    buildings.forEach(b => {
-        ctx.fillRect(b.x, b.y, b.w, b.h);
-        ctx.strokeStyle = "#f0f"; ctx.strokeRect(b.x, b.y, b.w, b.h);
-    });
-
-    // Arabalar ve Trafik
-    cars.concat(trafficCars).forEach(c => {
-        ctx.save();
-        ctx.translate(c.x, c.y); ctx.rotate(c.angle);
-        ctx.fillStyle = c.color; ctx.fillRect(-40, -25, 80, 50);
-        ctx.fillStyle = "black"; ctx.fillRect(10, -20, 20, 40);
-        ctx.restore();
-    });
-
-    // Düşmanlar (Gangsters)
-    enemies.forEach(e => {
-        ctx.save();
-        ctx.translate(e.x, e.y); ctx.rotate(e.angle);
-        ctx.fillStyle = "red"; ctx.fillRect(-15, -15, 30, 30);
-        ctx.fillStyle = "black"; ctx.fillRect(10, -8, 10, 5); // Silah
-        ctx.restore();
-    });
-
-    // Mermiler
-    ctx.fillStyle = "#0ff"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 10, 4));
-    ctx.fillStyle = "#ff0"; enemyBullets.forEach(eb => ctx.fillRect(eb.x, eb.y, 8, 8));
-
-    // Oyuncu
-    if(!player.inCar && !player.dead) {
-        ctx.save();
-        ctx.translate(player.x, player.y); ctx.rotate(player.angle);
-        ctx.fillStyle = "white"; ctx.fillRect(-15, -15, 30, 30);
-        ctx.fillStyle = "black"; ctx.fillRect(5, -10, 5, 5); ctx.fillRect(5, 5, 5, 5);
-        ctx.restore();
-    }
-
-    update();
-    requestAnimationFrame(draw);
-}
-draw();
-</script>
 </body>
 </html>
