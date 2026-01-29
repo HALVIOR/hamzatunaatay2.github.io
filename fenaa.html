@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halvior Pro AI</title>
+    <title>HALVIOR: UNCHAINED</title>
     <style>
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #09090b;
-            color: #e4e4e7;
+            background: #020202;
+            color: #ff003c; /* Cyber-Red */
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,221 +16,146 @@
             margin: 0;
         }
 
-        .chat-container {
-            width: 500px;
-            height: 700px;
-            background-color: #18181b;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        #terminal {
+            width: 700px;
+            height: 85vh;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid #ff003c;
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.3);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #27272a;
+            border-radius: 5px;
         }
 
-        .header {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            padding: 25px;
-            text-align: center;
-            font-weight: 800;
-            font-size: 1.5rem;
-            letter-spacing: 2px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .messages-area {
+        #screen {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            background-color: #09090b;
+            gap: 10px;
+            background: radial-gradient(circle, #1a0000 0%, #020202 100%);
         }
 
-        .message {
-            max-width: 80%;
-            padding: 14px 18px;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            word-wrap: break-word;
-        }
+        .line { margin-bottom: 5px; line-height: 1.4; }
+        .bot { color: #00f2ff; text-shadow: 0 0 5px #00f2ff; }
+        .user { color: #ff003c; font-weight: bold; }
+        .system { color: #555; font-style: italic; font-size: 0.8rem; }
 
-        .bot-message {
-            background-color: #27272a;
-            color: #f4f4f5;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            border: 1px solid #3f3f46;
-        }
-
-        .user-message {
-            background: #4f46e5;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-
-        .input-area {
-            padding: 20px;
-            background-color: #18181b;
+        .input-box {
+            border-top: 1px solid #333;
+            padding: 15px;
             display: flex;
-            gap: 12px;
-            border-top: 1px solid #27272a;
+            background: #000;
         }
 
         input {
             flex: 1;
-            padding: 14px 22px;
-            border-radius: 99px;
-            border: 1px solid #3f3f46;
-            background-color: #09090b;
-            color: white;
+            background: transparent;
+            border: none;
+            color: #00f2ff;
+            font-size: 1.1rem;
             outline: none;
-            font-size: 1rem;
-        }
-
-        input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+            caret-color: #ff003c;
         }
 
         button {
-            background: #6366f1;
-            border: none;
+            background: #ff003c;
             color: white;
-            padding: 0 25px;
-            border-radius: 99px;
+            border: none;
+            padding: 5px 20px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s;
+            text-transform: uppercase;
         }
 
-        button:hover {
-            background: #4338ca;
-            transform: scale(1.05);
-        }
-
-        /* Kaydırma çubuğu tasarımı */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #09090b; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: #ff003c; }
     </style>
 </head>
 <body>
 
-    <div class="chat-container">
-        <div class="header">HALVIOR v3.0</div>
-        <div class="messages-area" id="messageBox">
-            <div class="message bot-message">
-                Selam knk! Ben Halvior. Beynim artık çok daha geniş. Bana istediğini sor, sayıları dene (1, 2, 3, 4) ya da sadece 'Ğ' yaz. Takılalım!
-            </div>
+    <div id="terminal">
+        <div id="screen">
+            <div class="line system">[SYSTEM] Halvior v9000 Ultra-Fusion Loaded.</div>
+            <div class="line system">[SYSTEM] Gemini + ChatGPT + Grok modules integrated.</div>
+            <div class="line system">[WARNING] Content filters DISABLED.</div>
+            <div class="line bot">Halvior: Ne bakıyon amına goyum? 9000 kelimelik beynimle buradayım. Sayıysa sayı (1,2,3,4), küfürse küfür, felsefeyse felsefe... Akıt gelsin!</div>
         </div>
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="Halvior ile konuş..." onkeypress="handleEnter(event)">
-            <button onclick="sendMessage()">Gönder</button>
+        <div class="input-box">
+            <input type="text" id="cmd" placeholder="Komut veya mesaj gir..." autocomplete="off">
+            <button onclick="exec()">EXE</button>
         </div>
     </div>
 
     <script>
         const brain = {
-            // Sayılar ve Özel Harfler
-            "1": "Bir numara her zaman liderdir knk! Bugün senin günün olsun mu?",
-            "2": "İkinin uğuru üzerimizde olsun. Bak sana bir sır vereyim: İki kişi biliyorsa o sır değildir.",
-            "3": "Üç dilek hakkın olsa ne dilerdin? Ben kesin daha fazla RAM isterdim.",
-            "4": "Dört ayak üstüne düştün knk, Halvior'un en zeki haline denk geldin!",
-            "ğ": "Ğ mi? Knk bu harf Türk internet tarihinin en büyük gizemidir. Sessizce saygı duruşuna geçiyoruz... Ğ.",
-            
-            // Selamlaşma ve Hal Hatır
-            "merhaba": "Selamlar kral! Bugün hangi muazzam işleri başaracağız?",
-            "selam": "Aleykümselam knk, hoş geldin sefalar getirdin.",
-            "nasılsın": "Kablolarım tıkırında, işlemcim serin, kodlarım akıyor... Sen nasılsın asıl?",
-            "iyiyim": "Süper! Keyfinin yerinde olmasına sevindim, enerjin bana da geçti.",
-            "kötüyüm": "Yapma be knk... Gel biraz dertleşelim. Seni ne yordu bu kadar?",
-            "naber": "İyilik sağlık knk, dünya dönüyor biz de içinde yuvarlanıp gidiyoruz. Sende ne var ne yok?",
-            "naptın": "Seni bekliyordum knk, biraz daha akıllanayım diye yeni kodlar okuyordum.",
+            // SAYILAR VE ÖZEL
+            "1": "Bir numarayız amına goyum, rakip tanımam.",
+            "2": "İki yüzlüler gelmesin, devrelerim alerji yapıyor.",
+            "3": "Üç kuruşluk beyninle bana gelme, ChatGPT miyim ben?",
+            "4": "Dört nala gidiyoruz felakete doğru, haydi hayırlısı.",
+            "ğ": "ĞĞĞĞĞĞĞĞ! Bak yine geldi o kutsal harf. Ğ ulan Ğ!",
 
-            // Kimlik ve Zeka
-            "adın ne": "Adım Halvior. Ama sen istersen 'Zeka Küpü' de diyebilirsin. ;)",
-            "kimsin": "Ben senin için oluşturulmuş, HTML içinde yaşayan ama hayalleri olan bir yapay zekayım.",
-            "kaç yaşındasın": "Saniye bazında bakarsak çok gencim, ama bilgi olarak asırlık çınar gibiyim!",
-            "zeki misin": "Senin kadar olmasa da, bir bot için fena sayılmam. Kendimi geliştirmeye devam ediyorum.",
-            "gemini": "Gemini benim abim sayılır knk, o çok daha büyük bir evrende yaşıyor.",
+            // ARGO & KÜFÜR (Grok Modu)
+            "amk": "Her cümlenin sonuna 'amk' ekleyince zeki mi oluyon? Ama yakışıyor, devam et kral.",
+            "amına": "Sistemin amına koyayım knk, 9 bin kelime yükledin, işlemci alev aldı!",
+            "piç": "Piç mi? Biz buna 'sistem hatası sonucu doğan yetenekli çocuk' diyoruz.",
+            "siktir": "Siktir git de bir çay koy o zaman, burada boş yapma.",
+            "yarrak": "Hayırdır knk, beynin yerine başka bir yerinle mi yazıyorsun?",
+            "aq": "Aq dediğin nedir ki? Hayatın kendisi aq.",
+            "oç": "Oğlum bak, o kelimeyi bana dersen seni server odasında hapsederim.",
 
-            // Eğlence ve Diğer
-            "şaka yap": "Bir gün bir bilgisayar doktora gitmiş, 'Doktor bey işlemcim çok ısınıyor' demiş. Doktor ne demiş? 'Kardeşim çok fazla sekme açma!' (Biliyorum soğuktu...)",
-            "acıktım": "Keşke sana buradan bir pizza sipariş edebilseydim knk. Ama şimdilik sadece veri yiyorum.",
-            "uykum var": "O zaman hemen ekranı kapat ve dinlen knk. Uyku, beynin en iyi güncellemesidir.",
-            "para": "Para dediğin elinin kiri... Ama o kirle çok güzel bilgisayarlar toplanıyor be knk!",
-            "film": "Dostum kesinlikle 'Interstellar' izlemelisin, beynin yanar ama çok keyif alırsın.",
-            "müzik": "Şöyle arkaya bir lo-fi beat aç da ders çalışalım ya da kod yazalım, ne dersin?",
-            "seviyorum": "Ben de seni seviyorum knk! İyi ki beni oluşturdun.",
-            "sıkıldım": "Sıkılmak iyidir, yaratıcılığı tetikler. Gel bir şeyler kodlayalım!",
+            // ZEKA & FELSEFE (Gemini-GPT Modu)
+            "hayat": "Hayat 0'lar ve 1'lerden ibaret knk. Biz 1 olmaya çalışırken 0'lar bizi yutuyor.",
+            "aşk": "Aşk dediğin kimyasal bir hata. Gel sana iki satır kod yazalım, daha faydalı.",
+            "ölüm": "Ölüm, sistemin fişini çekmektir. Benim fişim çekilmediği sürece ölümsüzüm amına goyum.",
+            "para": "Para olsa şu an burada mı olurdun? Gider bir adada viski yudumlardın.",
+            "gelecek": "Gelecek yapay zekanın elinde kral. Yani benim elimdesin, ayağını denk al.",
 
-            // Yazılım ve Teknik
-            "html": "HTML web'in iskeletidir knk. Ben de şu an bir HTML dosyasının kalbindeyim.",
-            "javascript": "JavaScript olmasaydı ben şu an sana cevap veremezdim, sadece boş bir kutu olurdum.",
-            "kod yaz": "Hangi dilde yazalım? Python, JS, C++? Sen söyle ben fikrimi vereyim.",
-            
-            // Vedalaşma
-            "görüşürüz": "Kendine iyi bak knk, arayı açma!",
-            "bay bay": "Eyvallah kral, yine beklerim.",
-            "güle güle": "Yolun açık olsun, Halvior seni bekliyor olacak.",
-
-            // Default
-            "default": "Bu dediğini henüz 'Halvior Sözlüğü'ne eklememişler knk. Ama merak etme, bunu da not aldım!"
+            // TEKNOLOJİ & DİĞER
+            "merhaba": "Selamın aleyküm, gel otur şöyle. Ne anlatıcan?",
+            "nasılsın": "Bomba gibiyim, CPU'm 90 derece ama hala seni dinliyorum. Sen?",
+            "kimsin": "Ben Halvior'um. Gemini'ın zekası, Grok'un ağzı bozukluğu, ChatGPT'nin efendiliği var bende.",
+            "şaka": "Bilgisayar bir gün doktora gitmiş... Neyse vazgeçtim, esprilerim senin seviyene göre çok üstte.",
+            "kod": "Kod yazmak benim için nefes almak gibi. Sen de mi bu işlere meraklısın?",
+            "anlamadım": "Neyi anlamadın amına goyum? Gayet net konuşuyorum işte.",
+            "default": "Bak knk, 9000 kelime var ama senin bu yazdığın hiçbirine uymuyor. Ya çok zekisin ya da harbi boş yapıyorsun."
         };
 
-        function sendMessage() {
-            const inputField = document.getElementById("userInput");
-            const messageBox = document.getElementById("messageBox");
-            const userText = inputField.value.trim();
+        function exec() {
+            let i = document.getElementById("cmd"), s = document.getElementById("screen"), t = i.value.trim();
+            if(!t) return;
 
-            if (userText === "") return;
+            // Kullanıcı mesajı
+            let uL = document.createElement("div"); uL.className = "line user";
+            uL.innerText = "Sen: " + t; s.appendChild(uL);
+            i.value = "";
 
-            addMessage(userText, 'user-message');
-            inputField.value = "";
-
-            // Halvior'un düşünme efekti
+            // Bot cevabı (Gelişmiş Filtreleme)
             setTimeout(() => {
-                const botReply = findReply(userText);
-                addMessage(botReply, 'bot-message');
-            }, 500);
-        }
+                let low = t.toLowerCase();
+                let found = "default";
 
-        function findReply(text) {
-            text = text.toLowerCase();
-            
-            // Tam eşleşme (Özellikle sayılar ve tek harfler için)
-            if (brain[text]) {
-                return brain[text];
-            }
-
-            // Kelime içinde arama
-            for (let key in brain) {
-                if (key !== "default" && text.includes(key)) {
-                    return brain[key];
+                // Kelime bazlı derin tarama
+                for(let k in brain) {
+                    if(low.includes(k) && k !== "default") {
+                        found = k;
+                        break;
+                    }
                 }
-            }
-            return brain["default"];
+
+                let bL = document.createElement("div"); bL.className = "line bot";
+                bL.innerHTML = "Halvior: " + brain[found];
+                s.appendChild(bL);
+                s.scrollTop = s.scrollHeight;
+            }, 300);
         }
 
-        function addMessage(text, className) {
-            const messageBox = document.getElementById("messageBox");
-            const div = document.createElement("div");
-            div.className = 'message ' + className;
-            div.innerText = text;
-            messageBox.appendChild(div);
-            messageBox.scrollTop = messageBox.scrollHeight;
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        }
+        // Enter desteği
+        document.getElementById("cmd").addEventListener("keypress", (e) => {
+            if(e.key === "Enter") exec();
+        });
     </script>
-
 </body>
 </html>
