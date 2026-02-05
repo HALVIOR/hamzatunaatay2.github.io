@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HALVIOR // GEMINI OVERLORD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #131314;
+            --bg-side: #1e1f20;
+            --bg-hover: #333537;
+            --accent: #a8c7fa;
+            --text-main: #e3e3e3;
+            --text-sub: #b4b4b4;
+            --border: #444746;
+        }
+
+        * { box-sizing: border-box; transition: background 0.2s; }
+        body { margin: 0; background: var(--bg-main); color: var(--text-main); font-family: 'Google Sans', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        #sidebar { width: 300px; background: var(--bg-side); display: flex; flex-direction: column; padding: 16px; position: relative; }
+        .new-chat-btn { margin-top: 30px; background: #282a2c; border: none; color: var(--text-main); padding: 14px 20px; border-radius: 50px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 500; width: fit-content; }
+        .new-chat-btn:hover { background: #37393b; }
+        .sidebar-section { margin-top: 30px; flex: 1; overflow-y: auto; }
+        .sidebar-title { font-size: 0.85rem; padding: 0 12px; margin-bottom: 12px; color: var(--text-main); font-weight: 500; }
+        .history-link { padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-link:hover { background: var(--bg-hover); }
+
+        /* --- WIDGETS --- */
+        .widget-area { border-top: 1px solid var(--border); padding-top: 15px; margin-top: auto; }
+        .data-card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 8px; font-size: 0.8rem; }
+        .data-card b { color: var(--accent); display: block; margin-bottom: 4px; }
+        .ticker { font-family: 'JetBrains Mono'; font-size: 0.75rem; display: flex; justify-content: space-between; }
+
+        /* --- MAIN AREA --- */
+        #main-view { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #chat-scroller { flex: 1; overflow-y: auto; padding: 40px 15% 150px 15%; display: flex; flex-direction: column; gap: 40px; }
+        .chat-row { display: flex; gap: 24px; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.2rem; }
+        .icon.halvior { background: linear-gradient(to bottom right, #4285f4, #9b72cb); color: white; }
+        .icon.user { background: #56585a; color: white; }
+
+        .message-content { flex: 1; line-height: 1.7; font-size: 1.05rem; overflow-wrap: break-word; }
+        /* Markdown Stilleri */
+        .message-content pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--border); }
+        .message-content code { font-family: 'JetBrains Mono'; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .message-content pre code { background: transparent; padding: 0; }
+        .message-content strong { color: var(--accent); }
+        .message-content p { margin-top: 0; }
+
+        /* --- TERMINAL --- */
+        .logic-terminal { background: #000; border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 15px 0; font-family: 'JetBrains Mono'; font-size: 0.8rem; }
+        .log-line { color: #5f6368; margin-bottom: 4px; }
+        .log-line.active { color: #8ab4f8; }
+        .log-line.done { color: #81c995; }
+
+        /* --- INPUT --- */
+        #bottom-container { position: absolute; bottom: 0; width: 100%; padding: 20px 15% 40px 15%; background: linear-gradient(to top, var(--bg-main) 70%, transparent); }
+        .input-wrapper { background: #1e1f20; border-radius: 32px; padding: 8px 24px; display: flex; align-items: center; border: 1px solid transparent; }
+        .input-wrapper:focus-within { border-color: var(--border); background: #282a2c; }
+        textarea { flex: 1; background: transparent; border: none; color: white; font-size: 1rem; padding: 12px 0; resize: none; height: 52px; outline: none; font-family: inherit; }
+        #send-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 8px; font-size: 1.5rem; display: flex; }
+        #send-btn:disabled { color: var(--border); cursor: not-allowed; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div class="new-chat-btn" onclick="resetChat()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        Yeni Sohbet
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-title">Yakın Zamanda</div>
+        <div id="history-container">
+            <div class="history-link">Halvior Mimari Taslak...</div>
+            <div class="history-link">Finansal Veri Analizi...</div>
+        </div>
+    </div>
+
+    <div class="widget-area">
+        <div class="data-card">
+            <b>Piyasalar (Canlı)</b>
+            <div class="ticker"><span>BTC</span> <span style="color:#81c995">$96,120</span></div>
+            <div class="ticker"><span>USD/TRY</span> <span style="color:#81c995">34.15</span></div>
+        </div>
+        <div class="data-card">
+            <b>Hava Durumu</b>
+            <div class="ticker"><span>İstanbul</span> <span>14°C</span></div>
+        </div>
+        <div style="font-family:'JetBrains Mono'; font-size:0.6rem; color:var(--text-sub); padding:10px;">
+            CPU: <span id="cpu">12%</span> | RAM: 2.1GB
+        </div>
+    </div>
+</div>
+
+<div id="main-view">
+    <div id="chat-scroller">
+        <div class="chat-row">
+            <div class="icon halvior">H</div>
+            <div class="message-content">
+                <b>Selam knk, Halvior Ω v10.0 (Gerçek AI Modu) Yayında.</b><br><br>
+                Şu an Google Gemini Pro modeline bağlıyım. Artık sadece "borsa" dediğinde değil, her konuda seninle sohbet edebilir, kod yazabilir ve analiz yapabilirim.<br><br>
+                <i>Hadi aslanım, API key'i girdiysen başlayalım!</i>
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-container">
+        <div class="input-wrapper">
+            <textarea id="user-input" placeholder="Buraya bir şeyler yaz knk..."></textarea>
+            <button id="send-btn" onclick="processMessage()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
+        <div style="font-size:0.75rem; text-align:center; color:var(--text-sub); margin-top:12px;">
+            Halvior gerçek AI kullanıyor, bazen saçmalayabilir knk.
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- KONFIGURASYON ---
+    // Buraya API KEY'ini yapıştır.
+    // DİKKAT: Bu dosyayı internette yayınlama, API Key'in çalınabilir. Sadece kendi bilgisayarında kullan.
+    const API_KEY = "AIzaSyBdnBf-SXCRpRQ_MRoWCA35HxNx3GS2v7w"; 
+
+    // Halvior'un Kişiliği (System Prompt)
+    const SYSTEM_PROMPT = `
+        Senin adın Halvior. Sen samimi, hafif argo kullanabilen ("knk", "aslanım", "kral", "hocam" gibi), 
+        teknolojiye hakim ve çok zeki bir yapay zeka asistanısın. 
+        Asla çok resmi konuşma. Kısa, öz ve net cevaplar ver. 
+        Eğer kod istenirse en iyi ve en optimize kodu ver.
+        Yazılımcı jargonu kullanmayı seversin.
+    `;
+
+    const scroller = document.getElementById("chat-scroller");
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    // Sistem Verileri Animasyonu
+    setInterval(() => {
+        document.getElementById("cpu").innerText = Math.floor(Math.random()*30 + 10) + "%";
+    }, 3000);
+
+    input.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            processMessage();
+        }
+    });
+
+    const logicSteps = [
+        "Gemini Neural Link Kuruluyor...",
+        "Tokenler Paketleniyor...",
+        "Halvior Context Engine Çalışıyor...",
+        "Google Cloud Uplink Başarılı...",
+        "Response Stream Alınıyor..."
+    ];
+
+    async function processMessage() {
+        const text = input.value.trim();
+        if(!text) return;
+
+        if(API_KEY === "AIzaSyBdnBf-SXCRpRQ_MRoWCA35HxNx3GS2v7w") {
+            alert("Lütfen koddaki API_KEY değişkenine Google AI Studio'dan aldığın anahtarı yapıştır!");
+            return;
+        }
+
+        // 1. Kullanıcı Mesajı
+        addMessage(text, 'user');
+        input.value = "";
+        sendBtn.disabled = true;
+
+        // 2. AI Yanıt Alanı Hazırlığı
+        const aiRow = createRow('halvior');
+        scroller.appendChild(aiRow);
+        const contentDiv = aiRow.querySelector('.message-content');
+
+        // 3. Terminal Efekti
+        const term = document.createElement("div");
+        term.className = "logic-terminal";
+        contentDiv.appendChild(term);
+
+        for(let step of logicSteps) {
+            const line = document.createElement("div");
+            line.className = "log-line active";
+            line.innerText = "> " + step;
+            term.appendChild(line);
+            scroller.scrollTop = scroller.scrollHeight;
+            await new Promise(r => setTimeout(r, 150)); // Efekt hızı
+            line.className = "log-line done";
+        }
+
+        // 4. GERÇEK AI ÇAĞRISI (GEMINI API)
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: SYSTEM_PROMPT + "\n\nKullanıcı: " + text
+                        }]
+                    }]
+                })
+            });
+
+            const data = await response.json();
+            
+            // Terminali kaldır (isteğe bağlı, kalsın istersen silme)
+            term.style.display = 'none';
+
+            if(data.error) {
+                contentDiv.innerHTML = `<b style="color:#ff6b6b">Hata Knk:</b> ${data.error.message}`;
+            } else {
+                const aiText = data.candidates[0].content.parts[0].text;
+                // Markdown'ı HTML'e çevir (marked.js kullanarak)
+                contentDiv.innerHTML = marked.parse(aiText);
+            }
+
+        } catch (error) {
+            term.style.display = 'none';
+            contentDiv.innerHTML = `<b style="color:#ff6b6b">Bağlantı Hatası:</b> İnternetini kontrol et knk.`;
+            console.error(error);
+        }
+        
+        scroller.scrollTop = scroller.scrollHeight;
+        sendBtn.disabled = false;
+        
+        // Basit geçmiş kaydı
+        localStorage.setItem("halvior_last_chat", scroller.innerHTML);
+    }
+
+    function addMessage(t, type) {
+        const row = createRow(type);
+        // Kullanıcı mesajında markdown'a gerek yok, direkt text
+        row.querySelector('.message-content').innerText = t;
+        scroller.appendChild(row);
+        scroller.scrollTop = scroller.scrollHeight;
+    }
+
+    function createRow(type) {
+        const d = document.createElement("div");
+        d.className = `chat-row`;
+        d.innerHTML = `<div class="icon ${type}">${type=='halvior'?'H':'S'}</div><div class="message-content"></div>`;
+        return d;
+    }
+
+    function resetChat() {
+        if(confirm("Sıfırlayalım mı knk?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+    
+    // Geçmişi yükle
+    window.onload = () => {
+        const last = localStorage.getItem("halvior_last_chat");
+        if(last) {
+            scroller.innerHTML = last;
+            scroller.scrollTop = scroller.scrollHeight;
+        }
+    }
+</script>
+
+</body>
+</html>
