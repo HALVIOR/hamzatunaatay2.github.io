@@ -4,25 +4,42 @@
     <meta charset="UTF-8">
     <title>RDR 2D: Halvior Frontier</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #3d2b1f; font-family: 'Georgia', serif; }
-        #arayuz { position: absolute; top: 20px; left: 20px; color: #f4a460; background: rgba(30, 15, 0, 0.9); padding: 15px; border: 3px double #8b4513; border-radius: 5px; pointer-events: none; min-width: 250px; box-shadow: 5px 5px 15px #000; }
-        #diyalog-kutusu { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 70%; background: rgba(0,0,0,0.85); color: #fff; padding: 25px; border-left: 10px solid #8b0000; display: none; text-align: center; font-size: 1.4em; border-radius: 5px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        #onur-bar { width: 100%; height: 12px; background: #444; margin-top: 8px; border: 1px solid #fff; position: relative; }
-        #onur-imlec { width: 10px; height: 100%; background: #ffcc00; position: absolute; left: 50%; transition: 0.5s; }
-        canvas { display: block; filter: sepia(0.3) contrast(1.1); }
+        /* Halvior Logona Uygun Kırmızı-Siyah Tema */
+        body { margin: 0; overflow: hidden; background: #1a0a0a; font-family: 'Georgia', serif; }
+        #arayuz { 
+            position: absolute; top: 20px; left: 20px; color: #ff3333; 
+            background: rgba(0, 0, 0, 0.9); padding: 15px; 
+            border: 2px solid #ff0000; border-radius: 10px; 
+            pointer-events: none; min-width: 250px; 
+            box-shadow: 0 0 20px #ff0000;
+        }
+        #diyalog-kutusu { 
+            position: absolute; bottom: 30px; left: 50%; 
+            transform: translateX(-50%); width: 70%; 
+            background: rgba(20, 0, 0, 0.95); color: #fff; 
+            padding: 20px; border: 3px solid #8b0000; 
+            display: none; text-align: center; font-size: 1.4em; 
+            border-radius: 15px; box-shadow: 0 0 30px #000;
+        }
+        #onur-bar-container { width: 100%; height: 12px; background: #333; margin-top: 10px; border: 1px solid #ff0000; position: relative; }
+        #onur-imlec { width: 15px; height: 100%; background: #ff0000; position: absolute; left: 50%; transition: 0.5s; box-shadow: 0 0 10px #f00; }
+        canvas { display: block; filter: sepia(0.2) contrast(1.2) brightness(0.8); }
+        .stat { font-weight: bold; color: #fff; }
     </style>
 </head>
 <body>
 
 <div id="arayuz">
-    <div style="font-size: 22px; font-weight: bold; color: #ffcc00; text-align: center;">🤠 HALVIOR VAHŞİ BATIDA</div>
-    <hr>
-    💰 Altın: $<span id="para">250.00</span><br>
-    ❤️ Sağlık: <span id="can">100</span><br>
-    ⚖️ ONUR: <div id="onur-bar"><div id="onur-imlec"></div></div>
-    ⭐ Aranıyor: <span id="aranma" style="color: #0f0;">TEMİZ</span>
-    <hr>
-    <small style="color: #bbb;">WASD: Hareket | F: Selam/Racon | E: At Bin/İn | Sol Click: Ateş</small>
+    <div style="font-size: 24px; font-weight: bold; color: #ff0000; text-shadow: 2px 2px #000;">HALVIOR</div>
+    <div style="font-size: 12px; color: #aaa; margin-bottom: 10px;">OYUN • EĞLENCE</div>
+    <hr style="border-color: #400;">
+    <span class="stat">💰 ALTIN:</span> $<span id="para">250.00</span><br>
+    <span class="stat">❤️ CAN:</span> <span id="can">100</span><br>
+    <span class="stat">⚖️ ONUR:</span> 
+    <div id="onur-bar-container"><div id="onur-imlec"></div></div>
+    <div id="aranma-durumu" style="margin-top: 10px; font-weight: bold; color: #0f0;">TEMİZ</div>
+    <hr style="border-color: #400;">
+    <small style="color: #888;">F: Selam/Racon | G: Kement At | E: At Bin/İn | Sol Click: Ateş</small>
 </div>
 
 <div id="diyalog-kutusu"></div>
@@ -35,145 +52,141 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let oyuncu = { x: 1000, y: 1000, aci: 0, atUstünde: false, can: 100, para: 250, onur: 50, aranma: 0 };
+    let oyuncu = { x: 1000, y: 1000, aci: 0, atUstunde: false, can: 100, para: 250, onur: 50, aranma: false };
     let kamera = { x: 0, y: 0 };
     let mermiler = [];
     let tuslar = {};
     let fare = { x: 0, y: 0 };
 
-    // --- GENİŞLETİLMİŞ DİYALOG SİSTEMİ ---
-    const diyaloglar = {
-        dostca: ["Günaydın yabancı, buralarda yeni misin?", "Yolun açık olsun evlat, atın da pek yakışıklıymış.", "Şerif bugün huysuz, dikkat et de başın yanmasın."],
+    // --- SENİN VERDİĞİN TÜM DİYALOGLAR ---
+    const metinler = {
+        dost: ["Günaydın yabancı, buralarda yeni misin?", "Yolun açık olsun evlat, atın da pek yakışıklıymış.", "Şerif bugün huysuz, dikkat et de başın yanmasın."],
         kiskirtici: ["Neye bakıyorsun? Ömründe hiç kovboy görmedin mi?", "Buralarda senin gibileri pek sevmezler, yoluna git.", "O elindeki silahı kılıfına sok, yoksa ben sokarım."],
-        at: ["Sakin ol kızım, sadece bir fırtına...", "Aferin sana, bizi yine kurtardın.", "Az kaldı, kasabada sana en iyi yulafı alacağım."],
-        dutch: ["Dutch: 'Bana güven Arthur! Bir büyük iş daha... Sonra Tahiti'de mango yiyeceğiz!'", "Halvior: 'Her seferinde aynı şeyi söylüyorsun ama hepimiz ölüyoruz!'"],
-        serif: ["Şerif: 'Bu kasabada senin gibi haydutlara yer yok! Ya hapsi boylarsın ya da toprağı!'"]
+        at: ["Sakin ol kızım, sadece bir fırtına...", "Aferin sana, bizi yine kurtardın.", "Az kaldı, kasabada sana en iyi yulafı alacağım.", "Yavaşla... Yoruldun biliyorum ama dayanmamız lazım."],
+        serif: ["Şerif: 'Bu kasabada senin gibi haydutlara yer yok, Halvior! Ya hapsi boylarsın ya da toprağı!'"],
+        teslim: "Tamam, ellerimi kaldırıyorum! Sadece ateş etmeyin.",
+        kacis: "Beni asla canlı yakalayamayacaksınız!",
+        dutch: ["Dutch: 'Bana güven Arthur! Bir büyük iş daha... Sonra Tahiti'de mango yiyeceğiz!'", "Halvior: 'Her seferinde aynı şeyi söylüyorsun Dutch, ama hepimiz ölüyoruz!'", "Dutch: 'İnancını kaybetme evlat! Sadakat her şeydir. Benim bir planım var!'"],
+        combat: ["Mezarını kazmaya başla, çünkü bu mermi adını taşıyor!", "Ah! Bu sadece bir sıyrık... Daha iyisini yapman lazım.", "Herkesin bir vakti vardır... Senin vaktin şimdi doldu."],
+        kement: ["Suçlu: 'Bırak beni! Ben suçsuzum, yemin ederim!'", "Halvior: 'Bunu şerife anlatırsın koçum, şimdi uslu dur.'", "Suçlu: 'Atının arkasında sürüklenmekten nefret ediyorum, lanet olsun!'"]
     };
 
-    const binalar = [
-        { x: 700, y: 600, w: 300, h: 400, isim: "SALOON", renk: "#4b2c20" },
-        { x: 1300, y: 700, w: 200, h: 250, isim: "ŞERİF", renk: "#3e2723" }
-    ];
-
     let npcler = [
-        { x: 1350, y: 800, isim: "Şerif", renk: "blue", tip: "serif" },
-        { x: 850, y: 750, isim: "Dutch", renk: "red", tip: "dutch" },
-        { x: 1100, y: 1400, isim: "Yabancı", renk: "green", tip: "halk" }
+        { x: 1300, y: 800, isim: "Şerif", renk: "#00f", tip: "serif", bagli: false },
+        { x: 800, y: 700, isim: "Dutch", renk: "#f00", tip: "dutch", bagli: false },
+        { x: 1100, y: 1300, isim: "Vatandaş", renk: "#888", tip: "halk", bagli: false },
+        { x: 1500, y: 1500, isim: "O'Driscoll", renk: "#ffa500", tip: "dusman", can: 50, bagli: false }
     ];
 
     let at = { x: 1150, y: 1150 };
 
     window.onmousemove = (e) => { fare.x = e.clientX + kamera.x; fare.y = e.clientY + kamera.y; };
-    window.onmousedown = () => { if(!oyuncu.atUstünde) atesEt(); };
+    window.onmousedown = () => { if(!oyuncu.atUstunde) atesEt(); };
     window.onkeydown = (e) => { 
         tuslar[e.code] = true;
         if(e.code === 'KeyF') etkilesim();
+        if(e.code === 'KeyG') kementAt();
         if(e.code === 'KeyE') atBinIn();
     };
     window.onkeyup = (e) => tuslar[e.code] = false;
 
     function atBinIn() {
-        let d = Math.hypot(oyuncu.x - at.x, oyuncu.y - at.y);
-        if(d < 70) {
+        if(Math.hypot(oyuncu.x - at.x, oyuncu.y - at.y) < 70) {
             oyuncu.atUstünde = !oyuncu.atUstünde;
-            if(!oyuncu.atUstünde) diyalogGoster(diyaloglar.at[Math.floor(Math.random()*3)]);
+            diyalogGoster(metinler.at[Math.floor(Math.random()*metinler.at.length)]);
         }
     }
 
     function atesEt() {
         let aci = Math.atan2(fare.y - oyuncu.y, fare.x - oyuncu.x);
-        mermiler.push({ x: oyuncu.x, y: oyuncu.y, vx: Math.cos(aci)*20, vy: Math.sin(aci)*20 });
-        diyalogGoster("Mezarını kazmaya başla, bu mermi adını taşıyor!");
+        mermiler.push({ x: oyuncu.x, y: oyuncu.y, vx: Math.cos(aci)*22, vy: Math.sin(aci)*22 });
+        diyalogGoster(metinler.combat[0]); // Mezarını kaz!
+    }
+
+    function kementAt() {
+        npcler.forEach(n => {
+            if(Math.hypot(oyuncu.x - n.x, oyuncu.y - n.y) < 150) {
+                n.bagli = true;
+                diyalogGoster(metinler.kement[1]); // Bunu şerife anlatırsın!
+                oyuncu.onur += 5;
+            }
+        });
     }
 
     function etkilesim() {
-        let yakinNPC = npcler.find(n => Math.hypot(oyuncu.x - n.x, oyuncu.y - n.y) < 80);
-        let mesaj = "";
+        let n = npcler.find(npc => Math.hypot(oyuncu.x - npc.x, oyuncu.y - npc.y) < 80);
+        let m = "Halvior: 'Yoluna bak yoluna...'";
 
-        if(yakinNPC) {
-            if(yakinNPC.tip === "dutch") mesaj = diyaloglar.dutch[Math.floor(Math.random()*2)];
-            else if(yakinNPC.tip === "serif") mesaj = diyaloglar.serif[0];
-            else {
-                mesaj = oyuncu.onur > 40 ? diyaloglar.dostca[Math.floor(Math.random()*3)] : diyaloglar.kiskirtici[Math.floor(Math.random()*3)];
-                oyuncu.onur += 2;
-            }
-        } else if(oyuncu.atUstünde) {
-            mesaj = diyaloglar.at[Math.floor(Math.random()*3)];
-        } else {
-            mesaj = "Halvior: 'Kimse yok mu kime racon kesek?'";
-        }
-        diyalogGoster(mesaj);
+        if(n) {
+            if(n.bagli) m = metinler.kement[0];
+            else if(n.tip === "dutch") m = metinler.dutch[Math.floor(Math.random()*3)];
+            else if(n.tip === "serif") m = oyuncu.aranma ? metinler.serif[0] : metinler.dost[0];
+            else m = oyuncu.onur > 45 ? metinler.dost[Math.floor(Math.random()*3)] : metinler.kiskirtici[Math.floor(Math.random()*3)];
+        } else if(oyuncu.atUstünde) m = metinler.at[Math.floor(Math.random()*4)];
+        
+        diyalogGoster(m);
     }
 
-    function diyalogGoster(metin) {
-        const box = document.getElementById('diyalog-kutusu');
-        box.innerText = metin;
-        box.style.display = 'block';
-        setTimeout(() => box.style.display = 'none', 3500);
+    function diyalogGoster(t) {
+        const b = document.getElementById('diyalog-kutusu');
+        b.innerText = t; b.style.display = 'block';
+        setTimeout(() => b.style.display = 'none', 3500);
     }
 
     function ciz() {
         ctx.setTransform(1,0,0,1,0,0);
-        ctx.fillStyle = "#c2a385"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#2d1b0d"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.translate(-kamera.x, -kamera.y);
 
-        // Binalar ve Çevre
-        binalar.forEach(b => {
-            ctx.fillStyle = b.renk; ctx.fillRect(b.x, b.y, b.w, b.h);
-            ctx.fillStyle = "yellow"; ctx.fillRect(b.x+20, b.y+50, 40, 40); // Pencere
-            ctx.fillStyle = "#fff"; ctx.fillText(b.isim, b.x + b.w/2 - 20, b.y + 30);
-        });
+        // Binalar (Karanlık Western Teması)
+        ctx.fillStyle = "#1a0f0a"; ctx.fillRect(750, 600, 300, 400); // Saloon
+        ctx.fillStyle = "#ff0"; ctx.fillRect(800, 700, 30, 30); // Pencere Işığı
 
         // At
-        ctx.fillStyle = "#6d4c41"; ctx.fillRect(at.x - 40, at.y - 20, 80, 40);
+        ctx.fillStyle = "#4a2c1d"; ctx.fillRect(at.x - 40, at.y - 20, 80, 40);
         ctx.fillStyle = "#000"; ctx.fillRect(at.x + 30, at.y - 15, 20, 15);
 
-        // Karakterler
+        // NPC'ler
         npcler.forEach(n => {
-            ctx.fillStyle = n.renk; ctx.fillRect(n.x - 15, n.y - 15, 30, 30);
-            ctx.fillStyle = "#000"; ctx.fillRect(n.x - 20, n.y - 18, 40, 6); // Şapka
-            ctx.fillStyle = "#fff"; ctx.fillText(n.isim, n.x - 15, n.y - 25);
+            ctx.fillStyle = n.bagli ? "#555" : n.renk;
+            ctx.fillRect(n.x - 15, n.y - 15, 30, 30);
+            if(n.bagli) { ctx.strokeStyle = "#fff"; ctx.strokeRect(n.x-18, n.y-18, 36, 36); } // Kement görseli
+            ctx.fillStyle = "#fff"; ctx.fillText(n.isim + (n.bagli ? " (BAĞLI)" : ""), n.x - 20, n.y - 25);
         });
 
+        // Oyuncu (Halvior Temalı)
         if(!oyuncu.atUstünde) {
             ctx.save();
             ctx.translate(oyuncu.x, oyuncu.y);
             ctx.rotate(Math.atan2(fare.y - oyuncu.y, fare.x - oyuncu.x));
-            ctx.fillStyle = "#2196f3"; ctx.fillRect(-15, -15, 30, 30);
-            ctx.fillStyle = "#000"; ctx.fillRect(-20, -18, 40, 6);
+            ctx.fillStyle = "#ff0000"; ctx.fillRect(-15, -15, 30, 30); // Kırmızı Ceket
+            ctx.fillStyle = "#000"; ctx.fillRect(-20, -18, 40, 6); // Siyah Şapka
             ctx.restore();
-        } else {
-            at.x = oyuncu.x; at.y = oyuncu.y;
-        }
+        } else { at.x = oyuncu.x; at.y = oyuncu.y; }
 
-        // Mermiler
+        // Mermiler ve Takip
         mermiler.forEach((m, i) => {
             m.x += m.vx; m.y += m.vy;
-            ctx.fillStyle = "yellow"; ctx.fillRect(m.x, m.y, 10, 3);
+            ctx.fillStyle = "#ff0"; ctx.fillRect(m.x, m.y, 8, 3);
             npcler.forEach(n => {
-                if(Math.hypot(m.x - n.x, m.y - n.y) < 30) {
-                    oyuncu.onur -= 5;
-                    oyuncu.aranma = 1;
-                    mermiler.splice(i, 1);
-                    diyalogGoster("VURULDU! Onur Kaybedildi!");
+                if(!n.bagli && Math.hypot(m.x - n.x, m.y - n.y) < 30) {
+                    oyuncu.onur -= 10; oyuncu.aranma = true; mermiler.splice(i, 1);
+                    diyalogGoster(metinler.combat[1]); // Bu sadece bir sıyrık!
                 }
             });
         });
 
-        // Güncellemeler
-        let hiz = oyuncu.atUstünde ? 10 : 5;
-        if(tuslar['KeyW']) oyuncu.y -= hiz;
-        if(tuslar['KeyS']) oyuncu.y += hiz;
-        if(tuslar['KeyA']) oyuncu.x -= hiz;
-        if(tuslar['KeyD']) oyuncu.x += hiz;
+        // UI ve Fizik
+        let h = oyuncu.atUstünde ? 10 : 5;
+        if(tuslar['KeyW']) oyuncu.y -= h; if(tuslar['KeyS']) oyuncu.y += h;
+        if(tuslar['KeyA']) oyuncu.x -= h; if(tuslar['KeyD']) oyuncu.x += h;
 
         kamera.x = oyuncu.x - canvas.width/2;
         kamera.y = oyuncu.y - canvas.height/2;
 
         document.getElementById('onur-imlec').style.left = oyuncu.onur + "%";
-        document.getElementById('para').innerText = oyuncu.para.toFixed(2);
-        document.getElementById('aranma').innerText = oyuncu.aranma > 0 ? "⭐️ ARANIYOR ⭐️" : "TEMİZ";
-        document.getElementById('aranma').style.color = oyuncu.aranma > 0 ? "red" : "#0f0";
+        document.getElementById('aranma-durumu').innerText = oyuncu.aranma ? "⭐️ ARANIYOR ⭐️" : "TEMİZ";
+        document.getElementById('aranma-durumu').style.color = oyuncu.aranma ? "red" : "#0f0";
 
         requestAnimationFrame(ciz);
     }
