@@ -1,1 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Merve ❤️</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+    color: white;
+    text-align: center;
+}
+
+.container {
+    opacity: 0;
+    animation: fadeIn 3s forwards;
+}
+
+h1 {
+    font-size: 50px;
+}
+
+p {
+    font-size: 26px;
+    margin-bottom: 30px;
+}
+
+button {
+    padding: 12px 25px;
+    margin: 10px;
+    border: none;
+    border-radius: 25px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.loveBtn {
+    background: white;
+    color: #ff4f81;
+}
+
+.kissBtn {
+    background: #ff4f81;
+    color: white;
+}
+
+button:hover {
+    transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+.heart, .kiss {
+    position: absolute;
+    font-size: 20px;
+    animation: fall linear forwards;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-10vh);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh);
+        opacity: 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Merve ❤️</h1>
+    <p>Sevgililer Günün Kutlu Olsunnn 💕</p>
+
+    <button class="loveBtn" onclick="showLove()">Seni Seviyorum ❤️</button>
+    <button class="kissBtn" onclick="kissRain()">Öpücük Gönder 💋</button>
+</div>
+
+<script>
+
+// Sürekli kalp yağmuru
+function createHeart() {
+    const heart = document.createElement("div");
+    heart.classList.add("heart");
+    heart.innerHTML = "❤️";
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.animationDuration = Math.random() * 3 + 3 + "s";
+    document.body.appendChild(heart);
+
+    setTimeout(() => {
+        heart.remove();
+    }, 6000);
+}
+
+setInterval(createHeart, 300);
+
+// Seni Seviyorum butonu
+function showLove() {
+    alert("SENİ ÇOK SEVİYORUM MERVE ❤️");
+}
+
+// Öpücük yağmuru
+function kissRain() {
+    for (let i = 0; i < 50; i++) {
+        const kiss = document.createElement("div");
+        kiss.classList.add("kiss");
+        kiss.innerHTML = "💋";
+        kiss.style.left = Math.random() * 100 + "vw";
+        kiss.style.animationDuration = Math.random() * 2 + 2 + "s";
+        document.body.appendChild(kiss);
+
+        setTimeout(() => {
+            kiss.remove();
+        }, 4000);
+    }
+}
+
+</script>
+
+</body>
+</html>
 
